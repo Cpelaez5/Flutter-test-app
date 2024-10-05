@@ -1,9 +1,12 @@
 import 'package:english_words/english_words.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_application_1/pages/product_screen.dart';
 import 'package:provider/provider.dart';
 import './pages/favorites_page.dart';
 import './pages/generator_page.dart';
 import './pages/search_page.dart';
+import 'models/cart.dart';
+import 'pages/cart_screen.dart';
 import 'pages/webview.dart';
 
 void main() {
@@ -18,7 +21,7 @@ class MyApp extends StatelessWidget {
     return ChangeNotifierProvider(
       create: (context) => MyAppState(),
       child: MaterialApp(
-        title: 'Namer App',
+        title: 'Cafetín Ibero',
         theme: ThemeData(
           useMaterial3: true,
           colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepOrange),
@@ -55,8 +58,8 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-
   var selectedIndex = 0;
+  final Cart cart = Cart(); // Instancia persistente del carrito
 
   @override
   Widget build(BuildContext context) {
@@ -72,7 +75,13 @@ class _MyHomePageState extends State<MyHomePage> {
         page = SearchPage();
         break;
       case 3:
-        page = WebViewScreen(initialUrl: 'https://le-petit.labrioche.com.ve/'); // Pass initial URL
+        page = WebViewScreen(initialUrl: 'https://le-petit.labrioche.com.ve/');
+        break;
+      case 4:
+        page = ProductScreen(cart: cart); // Usar el carrito compartido
+        break;
+      case 5:
+        page = CartScreen(cart: cart); // Usar el carrito compartido
         break;
       default:
         throw UnimplementedError('no widget for $selectedIndex');
@@ -96,11 +105,20 @@ class _MyHomePageState extends State<MyHomePage> {
                     ),
                     NavigationRailDestination(
                       icon: Icon(Icons.search),
-                      label: Text('Search')
-                      ),
+                      label: Text('Search'),
+                    ),
                     NavigationRailDestination(
                       icon: Icon(Icons.web_asset),
-                      label: Text('Web'))
+                      label: Text('Web'),
+                    ),
+                    NavigationRailDestination(
+                      icon: Icon(Icons.storefront),
+                      label: Text('Shop'),
+                    ),
+                    NavigationRailDestination(
+                      icon: Icon(Icons.shopping_cart),
+                      label: Text('Cart'),
+                    ),
                   ],
                   selectedIndex: selectedIndex,
                   onDestinationSelected: (value) {
@@ -119,7 +137,7 @@ class _MyHomePageState extends State<MyHomePage> {
             ],
           ),
         );
-      }
+      },
     );
   }
 }
