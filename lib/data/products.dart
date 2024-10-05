@@ -1,8 +1,19 @@
-// data/products.dart
 import '../models/product.dart';
 
 List<Product> products = [
-  Product(id: 1, name: 'Producto 1', price: 10.99, description: 'Descripción del producto 1'),
-  Product(id: 2, name: 'Producto 2', price: 9.99, description: 'Descripción del producto 2'),
-  // ...
+  Product(
+    id: 1,
+    name: 'Cachito',
+    price: 44.08,
+    description: '¡Prueba nuestros únicos y deliciosos cachitos! De sabor auténtico, nuestros cachitos recién horneados, son el complemento perfecto para cualquier hora del día.',
+    imageUrl: 'https://le-petit.labrioche.com.ve/wp-content/uploads/2024/05/cachito.png', // Asegúrate de usar URLs válidas
+  ),
+  Product(
+    id: 2,
+    name: 'Empanada',
+    price: 35.26,
+    description: 'La empanada, el clásico alimento que combina sabor, portabilidad y calidad. Estas delicias fritas y rellenas son la comida perfecta cuando se trata de versatilidad y sabor.',
+    imageUrl: 'https://le-petit.labrioche.com.ve/wp-content/uploads/2024/05/Empanada-1.png',
+  ),
+  // Agrega más productos según sea necesario
 ];

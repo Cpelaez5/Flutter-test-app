@@ -1,8 +1,7 @@
-
 import 'package:flutter/material.dart';
+import '../data/products.dart'; // Importa la lista de productos
 import '../models/cart.dart';
-import '../models/product.dart';
-import 'cart_screen.dart';
+import 'product_detail_screen.dart';
 
 class ProductScreen extends StatelessWidget {
   final Cart cart;
@@ -11,35 +10,56 @@ class ProductScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final products = [
-      Product(id:1, name: 'Producto 1', description: 'Descripción 1', price: 10.0),
-      Product(id:2,name: 'Producto 2', description: 'Descripción 2', price: 20.0),
-    ];
-
     return Scaffold(
       appBar: AppBar(
         title: Text('Productos'),
       ),
-      body: ListView.builder(
-        itemCount: products.length,
-        itemBuilder: (context, index) {
-          return ListTile(
-            title: Text(products[index].name),
-            subtitle: Text(products[index].description),
-            trailing: ElevatedButton(
-              onPressed: () {
-                cart.addProduct(products[index]);
+      body: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: GridView.builder(
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2, // Número de columnas
+            childAspectRatio: 3 / 2, // Relación de aspecto de cada tarjeta
+            crossAxisSpacing: 8.0,
+            mainAxisSpacing: 8.0,
+          ),
+          itemCount: products.length,
+          itemBuilder: (context, index) {
+            final product = products[index];
+            return GestureDetector(
+              onTap: () {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => CartScreen(cart: cart),
+                    builder: (context) => ProductDetailScreen(product: product, cart: cart),
                   ),
                 );
               },
-              child: Text('Agregar al carrito'),
-            ),
-          );
-        },
+              child: Card(
+                child: Column(
+                  children: [
+                    Expanded(
+                      child: Image.network(
+                        product.imageUrl,
+                        fit: BoxFit.cover,
+                        width: double.infinity,
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Column(
+                        children: [
+                          Text(product.name, style: TextStyle(fontWeight: FontWeight.bold)),
+                          Text('\$${product.price}'),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        ),
       ),
     );
   }
