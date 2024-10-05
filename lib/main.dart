@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import './pages/favorites_page.dart';
 import './pages/generator_page.dart';
 import './pages/search_page.dart';
+import 'pages/webview.dart';
 
 void main() {
   runApp(MyApp());
@@ -70,6 +71,9 @@ class _MyHomePageState extends State<MyHomePage> {
       case 2:
         page = SearchPage();
         break;
+      case 3:
+        page = WebViewScreen(initialUrl: 'https://le-petit.labrioche.com.ve/'); // Pass initial URL
+        break;
       default:
         throw UnimplementedError('no widget for $selectedIndex');
     }
@@ -94,6 +98,9 @@ class _MyHomePageState extends State<MyHomePage> {
                       icon: Icon(Icons.search),
                       label: Text('Search')
                       ),
+                    NavigationRailDestination(
+                      icon: Icon(Icons.web_asset),
+                      label: Text('Web'))
                   ],
                   selectedIndex: selectedIndex,
                   onDestinationSelected: (value) {
