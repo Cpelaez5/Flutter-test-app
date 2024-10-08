@@ -7,25 +7,31 @@ class FavoritesPage extends StatelessWidget {
   Widget build(BuildContext context) {
     var appState = context.watch<MyAppState>();
 
-    if (appState.favorites.isEmpty) {
-      return Center(
-        child: Text('No favorites yet.'),
-      );
-    }
-
-    return ListView(
-      children: [
-        Padding(
-          padding: const EdgeInsets.all(20),
-          child: Text('You have '
-              '${appState.favorites.length} favorites:'),
-        ),
-        for (var pair in appState.favorites)
-          ListTile(
-            leading: Icon(Icons.favorite),
-            title: Text(pair.asLowerCase),
-          ),
-      ],
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Favoritos'),
+      ),
+      body: appState.favorites.isEmpty
+          ? Center(
+              child: Text('No favorites yet.'),
+            )
+          : ListView.builder(
+              itemCount: appState.favorites.length,
+              itemBuilder: (context, index) {
+                final product = appState.favorites[index];
+                return ListTile(
+                  leading: Icon(Icons.favorite),
+                  title: Text(product.name),
+                  subtitle: Text('Precio: \$${product.price}'),
+                  trailing: IconButton(
+                    icon: Icon(Icons.delete),
+                    onPressed: () {
+                      appState.toggleFavorite(product);
+                    },
+                  ),
+                );
+              },
+            ),
     );
   }
 }

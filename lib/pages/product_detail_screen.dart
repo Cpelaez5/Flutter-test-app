@@ -1,8 +1,8 @@
-
-
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../models/cart.dart';
 import '../models/product.dart';
+import '../main.dart'; // Asegúrate de importar donde está definido MyAppState
 
 class ProductDetailScreen extends StatefulWidget {
   final Product product;
@@ -19,11 +19,33 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    var appState = context.watch<MyAppState>();
+
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.product.name),
+        actions: [
+          IconButton(
+            icon: Icon(
+              appState.isFavorite(widget.product) ? Icons.favorite : Icons.favorite_border,
+            ),
+            onPressed: () {
+              appState.toggleFavorite(widget.product);
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    appState.isFavorite(widget.product)
+                        ? '${widget.product.name} añadido a favoritos'
+                        : '${widget.product.name} eliminado de favoritos',
+                  ),
+                  duration: Duration(seconds: 2),
+                ),
+              );
+            },
+          ),
+        ],
       ),
-      body: SingleChildScrollView( // Envuelve la Column en un SingleChildScrollView
+      body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Column(
@@ -61,7 +83,12 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                   for (int i = 0; i < quantity; i++) {
                     widget.cart.addProduct(widget.product);
                   }
-                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('$quantity ${widget.product.name} agregado(s) al carrito'),
+                      duration: Duration(seconds: 2),
+                    ),
+                  );
                 },
                 child: Text('Agregar al carrito'),
               ),

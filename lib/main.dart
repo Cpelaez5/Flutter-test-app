@@ -1,17 +1,17 @@
-import 'package:english_words/english_words.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_application_1/data/products.dart';
 import 'package:flutter_application_1/pages/product_screen.dart';
 import 'package:provider/provider.dart';
 import './pages/favorites_page.dart';
-import './pages/generator_page.dart';
 import './pages/search_page.dart';
 import 'models/cart.dart';
+import 'models/product.dart';
 import 'pages/cart_screen.dart';
 import 'pages/webview.dart';
 
 void main() {
   runApp(MyApp());
-} 
+}
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -19,7 +19,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (context) => MyAppState(),
+      create: (context) => MyAppState()..initializeCurrentProduct(),
       child: MaterialApp(
         title: 'Cafetín Ibero',
         theme: ThemeData(
@@ -33,25 +33,29 @@ class MyApp extends StatelessWidget {
 }
 
 class MyAppState extends ChangeNotifier {
-  var current = WordPair.random();
-  void getNext() {
-    current = WordPair.random();
-    notifyListeners();
-  } 
+  List<Product> favorites = [];
+  Product? currentProduct;
 
-   var favorites = <WordPair>[];
+  void initializeCurrentProduct() {
+    if (products.isNotEmpty) {
+      currentProduct = products.first; // O cualquier lógica que necesites
+    }
+  }
 
-  void toggleFavorite() {
-    if (favorites.contains(current)) {
-      favorites.remove(current);
+  bool isFavorite(Product product) {
+    return favorites.contains(product);
+  }
+
+  void toggleFavorite(Product product) {
+    if (isFavorite(product)) {
+      favorites.remove(product);
     } else {
-      favorites.add(current);
+      favorites.add(product);
     }
     notifyListeners();
   }
 }
 
-// ...
 class MyHomePage extends StatefulWidget {
   @override
   State<MyHomePage> createState() => _MyHomePageState();
@@ -66,21 +70,18 @@ class _MyHomePageState extends State<MyHomePage> {
     Widget page;
     switch (selectedIndex) {
       case 0:
-        page = GeneratorPage();
+        page = ProductScreen(cart: cart); // Usar el carrito compartido
         break;
       case 1:
         page = FavoritesPage();
         break;
       case 2:
-        page = SearchPage();
+        page = ProductSearchPage(products: products, cart: cart);
         break;
       case 3:
         page = WebViewScreen(initialUrl: 'https://le-petit.labrioche.com.ve/');
         break;
       case 4:
-        page = ProductScreen(cart: cart); // Usar el carrito compartido
-        break;
-      case 5:
         page = CartScreen(cart: cart); // Usar el carrito compartido
         break;
       default:
@@ -96,8 +97,8 @@ class _MyHomePageState extends State<MyHomePage> {
                   extended: constraints.maxWidth >= 600,
                   destinations: [
                     NavigationRailDestination(
-                      icon: Icon(Icons.home),
-                      label: Text('Home'),
+                      icon: Icon(Icons.storefront),
+                      label: Text('Shop'),
                     ),
                     NavigationRailDestination(
                       icon: Icon(Icons.favorite),
@@ -112,16 +113,12 @@ class _MyHomePageState extends State<MyHomePage> {
                       label: Text('Web'),
                     ),
                     NavigationRailDestination(
-                      icon: Icon(Icons.storefront),
-                      label: Text('Shop'),
-                    ),
-                    NavigationRailDestination(
                       icon: Icon(Icons.shopping_cart),
                       label: Text('Cart'),
                     ),
                   ],
                   selectedIndex: selectedIndex,
-                  onDestinationSelected: (value) {
+                  onDestinationSelected: (value ) {
                     setState(() {
                       selectedIndex = value;
                     });
@@ -141,36 +138,3 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 }
-
-class BigCard extends StatelessWidget {
-  const BigCard({
-    super.key,
-    required this.pair,
-  });
-
-  final WordPair pair;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    final style = theme.textTheme.displayMedium!.copyWith(
-      color: theme.colorScheme.onPrimary,
-    );
-
-    return Card(
-      shadowColor: theme.colorScheme.secondary,
-      elevation: 20,
-      color: theme.colorScheme.primary,
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Text(
-            pair.asLowerCase,
-            style: style,
-            semanticsLabel: "${pair.first} ${pair.second}",
-          ),
-      ),
-    );
-  }
-}
-
