@@ -19,9 +19,9 @@ class ProductScreen extends StatelessWidget {
         child: GridView.builder(
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: 2, // Número de columnas
-            childAspectRatio: 3 / 2, // Relación de aspecto de cada tarjeta
-            crossAxisSpacing: 8.0,
-            mainAxisSpacing: 8.0,
+            childAspectRatio: 1.9 / 2, // Relación de aspecto de cada tarjeta
+            crossAxisSpacing: 12.0,
+            mainAxisSpacing: 12.0,
           ),
           itemCount: products.length,
           itemBuilder: (context, index) {
