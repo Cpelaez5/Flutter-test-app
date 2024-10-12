@@ -110,7 +110,7 @@ class _MyHomePageState extends State<MyHomePage> {
         page = ProductSearchPage(products: products, cart: cart);
         break;
       case 3:
-        page = WebViewScreen(initialUrl: 'https://le-petit.labrioche.com.ve/');
+        page = AuthScreen();
         break;
       case 4:
         page = CartScreen(cart: cart); // Usar el carrito compartido
