@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "495781403043",
+    "project_id": "cafetin-ibero-app",
+    "storage_bucket": "cafetin-ibero-app.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:495781403043:android:e16359bb6e61d2e24ca216",
+        "android_client_info": {
+          "package_name": "com.cafeitinibero.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDNIb3JwV4fjVAM9zcnLdMg6qhBKq8Aauw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

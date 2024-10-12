@@ -30,15 +30,12 @@ class _CartScreenState extends State<CartScreen> {
                   padding: const EdgeInsets.symmetric(vertical: 4.0),
                   child: Row(
                     children: [
-                      if (product.imageUrl != null)
-                        Image.network(
-                          product.imageUrl,
-                          width: 50,
-                          height: 50,
-                          fit: BoxFit.cover,
-                        )
-                      else
-                        Icon(Icons.image_not_supported, size: 50),
+                      Image.network(
+                        product.imageUrl,
+                        width: 50,
+                        height: 50,
+                        fit: BoxFit.cover,
+                      ),
                       SizedBox(width: 10),
                       Expanded(
                         child: Column(

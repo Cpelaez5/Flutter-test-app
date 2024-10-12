@@ -13,7 +13,7 @@ class FavoritesPage extends StatelessWidget {
       ),
       body: appState.favorites.isEmpty
           ? Center(
-              child: Text('No favorites yet.'),
+              child: Text('No hay favoritos por aquí.'),
             )
           : ListView.builder(
               itemCount: appState.favorites.length,

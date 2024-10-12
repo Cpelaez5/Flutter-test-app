@@ -66,6 +66,7 @@ class _ProductSearchPageState extends State<ProductSearchPage> {
                 itemBuilder: (context, index) {
                   final product = _filteredProducts[index];
                   return ListTile(
+                    // ignore: unnecessary_null_comparison
                     leading: product.imageUrl != null
                         ? Image.network(
                             product.imageUrl,
