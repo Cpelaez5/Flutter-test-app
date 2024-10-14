@@ -3,7 +3,10 @@ import 'package:provider/provider.dart';
 import '../main.dart';
 
 class FavoritesPage extends StatelessWidget {
+  static var routeName;
+
   @override
+
   Widget build(BuildContext context) {
     var appState = context.watch<MyAppState>();
 
