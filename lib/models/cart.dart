@@ -31,5 +31,9 @@ class Cart {
       }
     }
   }
+
+  void clear() {
+    _products.clear();
+  }
 }
 

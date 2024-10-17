@@ -1,8 +1,3 @@
-// services/payment_service.dart
-import '../models/cart.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
-class PaymentService {
-  Future<void> processPayment(Cart cart) async {
-    // Procesar la compra con el servicio de pago
-  }
-}
+

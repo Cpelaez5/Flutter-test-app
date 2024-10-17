@@ -24,47 +24,50 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
 
   Future<void> _loadUserData() async {
     final user = FirebaseAuth.instance.currentUser ;
-    if (user == null) {
-      print('Usuario no autenticado');
-      return;
+  if (user == null) {
+    print('Usuario no autenticado');
+    return;
+  }
+
+  setState(() {
+    _isLoading = true;
+  });
+
+  try {
+    final doc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
+    if (doc.exists) {
+      final data = doc.data();
+      if (data != null) {
+        _nameController.text = data['name'] ?? '';
+        _idController.text = data['Cédula'] ?? '';
+        _phoneController.text = data['Teléfono'] ?? '';
+        _emailController.text = data['email'] ?? '';
+        _originalData = {
+          'name': _nameController.text,
+          'Cédula': _idController.text,
+          'Teléfono': _phoneController.text,
+          'email': _emailController.text,
+        };
+        print('Datos cargados: $_originalData'); // Verificar que los datos se carguen correctamente
+      }
+    } else {
+      print('No se encontró el documento para el usuario: ${user.uid}');
     }
-
-    setState(() {
-      _isLoading = true;
-    });
-
-    try {
-      final doc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
-      if (doc.exists) {
-        final data = doc.data();
-        if (data != null) {
-          _nameController.text = data['Nombre'] ?? '';
-          _idController.text = data['Cédula'] ?? '';
-          _phoneController.text = data['Teléfono'] ?? '';
-          _emailController.text = data['Email'] ?? '';
-          _originalData = {
-            'Nombre': _nameController.text,
-            'Cédula': _idController.text,
-            'Teléfono': _phoneController.text,
-            'Email': _emailController.text,
-          };
-        }
-      }
-    } catch (error) {
-      print('Error al cargar datos: $error');
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error al cargar datos')),
-        );
-      }
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
+  } catch (error) {
+    print('Error al cargar datos: $error');
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error al cargar datos')),
+      );
+    }
+  } finally {
+    if (mounted) {
+      setState(() {
+        _isLoading = false;
+      });
     }
   }
+}
 
   Future<void> _saveUser () async {
     final user = FirebaseAuth.instance.currentUser ;
@@ -73,10 +76,10 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
       return;
     }
 
-    if (_nameController.text == _originalData['Nombre'] &&
+    if (_nameController.text == _originalData['name'] &&
         _idController.text == _originalData['Cédula'] &&
         _phoneController.text == _originalData['Teléfono'] &&
-        _emailController.text == _originalData['Email']) {
+        _emailController.text == _originalData['email']) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('No hay cambios para actualizar')),
       );
@@ -104,11 +107,11 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
       await user.reauthenticateWithCredential(credential);
       print('Reautenticación exitosa');
 
-      await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
-        'Nombre': _nameController.text,
+      await FirebaseFirestore.instance.collection('users').doc(user.uid).update({
+        'name': _nameController.text,
         'Cédula': _idController.text,
         'Teléfono': _phoneController.text,
-        'Email': _emailController.text,
+        'email': _emailController.text,
       });
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -234,7 +237,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                     _buildTextField(_nameController, 'Nombre completo', TextInputType.name),
                     _buildTextField(_idController, 'Cédula', TextInputType.number, [FilteringTextInputFormatter.digitsOnly]),
                     _buildTextField(_phoneController, 'Teléfono', TextInputType.phone),
-                    _buildTextField(_emailController, 'Email', TextInputType.emailAddress),
+                    _buildTextField(_emailController, 'Correo electrónico', TextInputType.emailAddress),
                   ],
                 ),
               ),

@@ -12,12 +12,12 @@ class AuthScreen extends StatefulWidget {
 class _AuthScreenState extends State<AuthScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _nameController = TextEditingController(); // Agregar un controlador para el nombre
   bool _isLogin = true;
   bool _isLoading = false;
-  int _reintentos = 0;
-  Timer? _timer;
   bool _emailError = false;
   bool _passwordError = false;
+  bool _nameError = false; // Agregar una variable para el error del nombre
 
   void _toggleAuthMode() {
     setState(() {
@@ -28,13 +28,17 @@ class _AuthScreenState extends State<AuthScreen> {
   Future<void> _submit() async {
   final email = _emailController.text.trim();
   final password = _passwordController.text.trim();
+  final name = _nameController.text.trim(); // Obtener el texto del campo de nombre
 
   setState(() {
     _emailError = email.isEmpty;
     _passwordError = password.isEmpty;
+    if (!_isLogin) {
+      _nameError = name.isEmpty; // Verificar si el nombre está vacío
+    }
   });
 
-  if (_emailError || _passwordError) {
+  if (_emailError || _passwordError || (!_isLogin && _nameError)) {
     _showSnackBar('Por favor, completa todos los campos.');
     return;
   }
@@ -49,132 +53,143 @@ class _AuthScreenState extends State<AuthScreen> {
     if (_isLogin) {
       user = await authService.signIn(email, password);
     } else {
-      user = await authService.createUser (email, password);
+      user = await authService.createUser (name, email, password); // Pasar el nombre, correo electrónico y contraseña
     }
 
-    if (user != null) {
-      _showSnackBar(_isLogin ? 'Inicio de sesión exitoso' : 'Registro exitoso');
-      // Navega a la pantalla principal de tu aplicación
-      Navigator.of(context).pushReplacementNamed('/home');
-    } else {
-      _showSnackBar('Error al autenticar. Por favor, verifica tus credenciales.');
+    if (mounted) { // Verificar si el widget está montado
+      if (user != null) {
+        // Verificar si el usuario tiene el rol de administrador
+        final role = await authService.getRole(user.uid);
+        if (role == 'administrador') {
+          Navigator.of(context).pushReplacementNamed('/admin');
+        } else {
+          Navigator.of(context).pushReplacementNamed('/home');
+        }
+      } else {
+        _showSnackBar('Error al autenticar. Por favor, verifica tus credenciales.');
+      }
     }
   } catch (error) {
     print('Error: $error');
-    _showSnackBar('Error al autenticar. Por favor, verifica tus credenciales.');
+    if (mounted) { // Verificar si el widget está montado
+      _showSnackBar('Error al autenticar. Por favor, verifica tus credenciales.');
+    }
   } finally {
-    setState(() {
-      _isLoading = false;
-    });
+    if (mounted) { // Verificar si el widget está montado
+      setState(() {
+        _isLoading = false;
+      });
+    }
   }
 }
 
-  void _showErrorDialog(String message) {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text('Error'),
-        content: Text(message),
-        actions: <Widget>[
-          TextButton(
-            child: Text('OK'),
-            onPressed: () {
-              Navigator.of(ctx).pop();
-            },
-          ),
-        ],
-      ),
-    );
-  }
-
   void _showSnackBar(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        duration: Duration(seconds: 3),
-      ),
-    );
+    if (mounted) { // Verificar si el widget está montado
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(message),
+          duration: Duration(seconds: 3),
+        ),
+      );
+    }
   }
 
   @override
-  void dispose() {
-    _timer?.cancel();
-    _emailController.dispose();
-    _passwordController.dispose();
-    super.dispose();
-  }
+void dispose() {
+  _emailController.dispose();
+  _passwordController.dispose();
+  _nameController.dispose(); // Disponer del controlador del nombre
+  super.dispose();
+}
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(_isLogin ? 'Iniciar sesión' : 'Registrarse'),
-        backgroundColor: _isLogin ? Colors.blue : Colors.green,
-      ),
-      body: Center(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                _isLogin ? Icons.login : Icons.app_registration,
-                size: 100,
-                color: _isLogin ? Colors.blue : Colors.green,
-              ),
-              SizedBox(height: 20),
-              Text(
-                _isLogin
-                    ? 'Por favor, ingresa tus credenciales para iniciar sesión.'
-                    : 'Crea una cuenta nueva para comenzar.',
-                style: TextStyle(fontSize: 16),
-                textAlign: TextAlign.center,
-              ),
-              SizedBox(height: 20),
+Widget build(BuildContext context) {
+  return Scaffold(
+    appBar: AppBar(
+      title: Text(_isLogin ? 'Iniciar sesión' : 'Registrarse'),
+      backgroundColor: _isLogin ? Colors.blue : Colors.green,
+    ),
+    body: Center(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              _isLogin ? Icons.login : Icons.app_registration,
+              size: 100,
+              color: _isLogin ? Colors.blue : Colors.green,
+            ),
+            SizedBox(height: 20),
+            Text(
+              _isLogin
+                  ? 'Por favor, ingresa tus credenciales para iniciar sesión.'
+                  : 'Crea una cuenta nueva para comenzar.',
+              style: TextStyle(fontSize: 16),
+              textAlign: TextAlign.center,
+            ),
+            SizedBox(height: 20),
+            if (!_isLogin)
               TextField(
-                controller: _emailController,
+                controller: _nameController, // Agregar el campo de texto para el nombre
                 decoration: InputDecoration(
-                  labelText: 'Email',
-                  errorText: _emailError ? 'El campo no puede estar vacío' : null,
+                  labelText: 'Nombre',
+                  errorText: _nameError ? 'El campo no puede estar vacío' : null,
                   border: OutlineInputBorder(),
                   focusedBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: _emailError ? Colors.red : Colors.blue),
+                    borderSide: BorderSide(color: _nameError ? Colors.red : Colors.blue),
                   ),
                 ),
-                keyboardType: TextInputType.emailAddress,
               ),
-              SizedBox(height: 10),
-              TextField(
-                controller: _passwordController,
-                decoration: InputDecoration(
-                  labelText: 'Contraseña',
-                  errorText: _passwordError ? 'El campo no puede estar vacío' : null,
-                  border: OutlineInputBorder(),
-                  focusedBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: _passwordError ? Colors.red : Colors.blue),
-                  ),
+            SizedBox(height: 10),
+            TextField(
+              controller: _emailController,
+              decoration: InputDecoration(
+                labelText: 'Email',
+                errorText: _emailError ? 'El campo no puede estar vacío' : null,
+                border: OutlineInputBorder(),
+                focusedBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: _emailError ? Colors.red : Colors.blue),
                 ),
-                obscureText: true,
               ),
-              SizedBox(height: 20),
-              if (_isLoading)
-                CircularProgressIndicator()
-              else
-                ElevatedButton(
-                  onPressed: _submit,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: _isLogin ? Colors.lightBlueAccent : Colors.greenAccent,
-                  ),
-                  child: Text(_isLogin ? 'Iniciar sesión' : 'Registrarse'),
+              keyboardType: TextInputType.emailAddress,
+            ),
+            SizedBox(height: 10),
+            TextField(
+              controller: _passwordController,
+              decoration: InputDecoration(
+                labelText: 'Contraseña',
+                errorText: _passwordError ? 'El campo no puede estar vacío' : null,
+                border: OutlineInputBorder(),
+                focusedBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: _passwordError ? Colors.red : Colors.blue),
                 ),
-              TextButton(
-                onPressed: _toggleAuthMode,
-                child: Text(_isLogin ? 'Crear una cuenta' : 'Ya tengo una cuenta'),
               ),
-            ],
-          ),
+              obscureText: true,
+            ),
+            SizedBox(height: 20),
+            if (_isLoading)
+              CircularProgressIndicator()
+            else
+              ElevatedButton(
+                onPressed: _submit,
+                child: Text(_isLogin ? 'Iniciar sesión' : 'Registrarse'),
+                style: ElevatedButton.styleFrom(
+                  foregroundColor: Colors.white, backgroundColor: _isLogin ? Colors.blue : Colors.green,
+                ),
+              ),
+            SizedBox(height: 10),
+            TextButton(
+              onPressed: _toggleAuthMode,
+              child: Text(_isLogin ? 'Crear cuenta' : 'Iniciar sesión'),
+              style: TextButton.styleFrom(
+                foregroundColor: _isLogin ? Colors.blue : Colors.green,
+              ),
+            ),
+          ],
         ),
       ),
-    );
-  }
+    ),
+  );
+} 
 }

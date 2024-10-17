@@ -8,6 +8,8 @@ import './pages/favorites_page.dart';
 import './pages/search_page.dart';
 import 'models/cart.dart';
 import 'models/product.dart';
+import 'pages/admin_order_screen.dart';
+import 'pages/admin_screen.dart';
 import 'pages/auth_screen.dart';
 import 'pages/cart_screen.dart';
 import 'pages/splash_screen.dart';
@@ -43,7 +45,42 @@ class MyApp extends StatelessWidget {
           '/': (context) => SplashScreenWrapper(),
           '/login': (context) => AuthScreen(),
           '/home': (context) => MyHomePage(),
+          '/admin': (context) => AdminScreen(),
+          '/orders': (context) => AdminOrderScreen(),
         },
+        onUnknownRoute: (settings) {
+          return MaterialPageRoute(builder: (context) => NotFoundScreen());
+        },
+      ),
+    );
+  }
+}
+
+// Clase de ejemplo para la pantalla de pedidos
+class OrdersScreen extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Pedidos'),
+      ),
+      body: Center(
+        child: Text('Aquí se mostrarán los pedidos.'),
+      ),
+    );
+  }
+}
+
+// Clase de ejemplo para la pantalla de no encontrado
+class NotFoundScreen extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('No Encontrado'),
+      ),
+      body: Center(
+        child: Text('La página que buscas no existe.'),
       ),
     );
   }
@@ -172,6 +209,22 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   var selectedIndex = 0;
   final Cart cart = Cart(); // Instancia persistente del carrito
+  String? userRole; // Variable para almacenar el rol del usuario
+
+  @override
+  void initState() {
+    super.initState();
+    _getUserRole(); // Llamar al método para obtener el rol del usuario
+  }
+
+  Future<void> _getUserRole() async {
+    final authService = AuthService();
+    final user = authService.currentUser ;
+    if (user != null) {
+      userRole = await authService.getRole(user.uid);
+      setState(() {}); // Actualizar el estado para reflejar el rol
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -190,11 +243,16 @@ class _MyHomePageState extends State<MyHomePage> {
         page = UserProfileScreen();
         break;
       case 4:
-        page = CartScreen(cart: cart); // Usar el carrito compartido
+        if (userRole == 'cliente') { // Mostrar solo si el rol es administrador
+          page = CartScreen(cart: cart); // Usar el carrito compartido
+        } else {
+          page = AdminScreen();
+        }
         break;
       default:
         throw UnimplementedError('no widget for $selectedIndex');
     }
+
     return LayoutBuilder(
       builder: (context, constraints) {
         return Scaffold(
@@ -220,10 +278,16 @@ class _MyHomePageState extends State<MyHomePage> {
                       icon: Icon(Icons.person),
                       label: Text('User  Profile'),
                     ),
-                    NavigationRailDestination(
-                      icon: Icon(Icons.shopping_cart),
-                      label: Text('Cart'),
+                    if (userRole == 'cliente') // Mostrar solo si el rol es cliente
+                      NavigationRailDestination(
+                        icon: Icon(Icons.shopping_cart),
+                        label: Text('Cart'),
                     ),
+                    if (userRole == 'administrador') // Mostrar solo si el rol es administrador
+                      NavigationRailDestination(
+                        icon: Icon(Icons.admin_panel_settings),
+                        label: Text('Admin'),
+                      ),
                   ],
                   selectedIndex: selectedIndex,
                   onDestinationSelected: (value) {
