@@ -17,3 +17,15 @@ List<Product> products = [
   ),
   // Agrega más productos según sea necesario
 ];
+
+class ProductData {
+  final int id;
+  final int quantity;
+  final double price;
+
+  ProductData({
+    required this.id,
+    required this.quantity,
+    required this.price,
+  });
+}

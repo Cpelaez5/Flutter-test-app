@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../services/auth_service.dart';
+import '../../services/auth_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 class AuthScreen extends StatefulWidget {
@@ -173,18 +173,18 @@ Widget build(BuildContext context) {
             else
               ElevatedButton(
                 onPressed: _submit,
-                child: Text(_isLogin ? 'Iniciar sesión' : 'Registrarse'),
                 style: ElevatedButton.styleFrom(
                   foregroundColor: Colors.white, backgroundColor: _isLogin ? Colors.blue : Colors.green,
                 ),
+                child: Text(_isLogin ? 'Iniciar sesión' : 'Registrarse'),
               ),
             SizedBox(height: 10),
             TextButton(
               onPressed: _toggleAuthMode,
-              child: Text(_isLogin ? 'Crear cuenta' : 'Iniciar sesión'),
               style: TextButton.styleFrom(
                 foregroundColor: _isLogin ? Colors.blue : Colors.green,
               ),
+              child: Text(_isLogin ? 'Crear cuenta' : 'Iniciar sesión'),
             ),
           ],
         ),

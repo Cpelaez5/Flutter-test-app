@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../models/cart.dart';
+import '../../models/cart.dart';
 import 'payment_screen.dart';
 
 class CartScreen extends StatefulWidget {
@@ -25,7 +25,10 @@ class _CartScreenState extends State<CartScreen> {
   Navigator.push(
     context,
     MaterialPageRoute(
-      builder: (context) => PaymentScreen(totalAmount: totalAmount),
+      builder: (context) => PaymentScreen(
+        totalAmount: totalAmount,
+        products: widget.cart.products, // Pasar la lista de productos
+      ),
     ),
   );
 }

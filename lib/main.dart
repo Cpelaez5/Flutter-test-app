@@ -2,24 +2,26 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import './data/products.dart';
-import './pages/product_screen.dart';
+import 'screens/store/product_screen.dart';
 import 'package:provider/provider.dart';
-import './pages/favorites_page.dart';
-import './pages/search_page.dart';
+import 'screens/client/favorites_page.dart';
+import 'screens/store/search_page.dart';
 import 'models/cart.dart';
 import 'models/product.dart';
-import 'pages/admin_order_screen.dart';
-import 'pages/admin_screen.dart';
-import 'pages/auth_screen.dart';
-import 'pages/cart_screen.dart';
-import 'pages/splash_screen.dart';
-import 'pages/user_profile_screen.dart';
+import 'screens/admin/admin_order_screen.dart';
+import 'screens/admin/admin_screen.dart';
+import 'screens/users/auth_screen.dart';
+import 'screens/client/cart_screen.dart';
+import 'screens/splash_screen.dart';
+import 'screens/users/user_profile_screen.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'services/auth_service.dart';
+import 'package:timeago/timeago.dart' as timeago;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+   timeago.setLocaleMessages('es', timeago.EsMessages());
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );

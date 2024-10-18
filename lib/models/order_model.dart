@@ -3,30 +3,40 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class Payment {
   final String referenceNumber;
   final String phoneNumber;
+  final String paymentMethod;
   final String selectedBank;
   final bool isCaptureUploaded;
   final String user;
-  final DateTime date;
+  final DateTime timestamp;
+  final String paymentAmount;
+  final String paymentStatus;
+  final String paymentDate;
+  final List<dynamic> products;
 
   Payment({
     required this.referenceNumber,
     required this.phoneNumber,
+    required this.paymentMethod,
     required this.selectedBank,
     required this.isCaptureUploaded,
     required this.user,
-    required this.date,
+    required this.timestamp, 
+    required this.paymentAmount, 
+    required this.paymentStatus, 
+    required this.paymentDate, 
+    required this.products,
   });
 
   factory Payment.fromFirestore(DocumentSnapshot doc) {
     Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
 
     DateTime parsedDate;
-    if (data['date'] is Timestamp) {
+    if (data['timestamp'] is Timestamp) {
       // Si el campo es un Timestamp, conviértelo a DateTime
-      parsedDate = (data['date'] as Timestamp).toDate();
-    } else if (data['date'] is String) {
+      parsedDate = (data['timestamp'] as Timestamp).toDate();
+    } else if (data['timestamp'] is String) {
       // Si el campo es un String, intenta parsearlo
-      parsedDate = _parseCustomDate(data['date']);
+      parsedDate = _parseCustomDate(data['timestamp']);
     } else {
       // Manejo de error o valor predeterminado
       parsedDate = DateTime.now(); // O puedes lanzar una excepción
@@ -35,10 +45,15 @@ class Payment {
     return Payment(
       referenceNumber: data['referenceNumber'] ?? '',
       phoneNumber: data['phoneNumber'] ?? '',
+      paymentMethod: data['paymentMethod'] ?? '',
       selectedBank: data['selectedBank'] ?? '',
+      paymentAmount: data['paymentAmount'] ?? '',
       isCaptureUploaded: data['isCaptureUploaded'] ?? false,
       user: data['user'] ?? '',
-      date: parsedDate,
+      paymentStatus: data['paymentStatus'] ?? '',
+      timestamp: parsedDate,
+      paymentDate: data['paymentDate'] ?? '',
+      products: data['products'] ?? [],
     );
   }
 

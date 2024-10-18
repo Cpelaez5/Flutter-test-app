@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../data/products.dart'; // Importa la lista de productos
-import '../main.dart';
-import '../models/cart.dart';
+import '../../data/products.dart'; // Importa la lista de productos
+import '../../main.dart';
+import '../../models/cart.dart';
 import 'product_detail_screen.dart';
 import 'search_page.dart'; // Importa la página de búsqueda
 

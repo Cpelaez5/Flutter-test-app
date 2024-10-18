@@ -2,10 +2,19 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-
-import '../utils/text_input_formatter.dart';
+import '../../data/payment_data.dart';
+import '../../utils/currency_input_formatter.dart';
+import '../../utils/text_input_formatter.dart';
 
 class MobilePaymentScreen extends StatefulWidget {
+  final double totalAmount;
+  final List<Map<String, dynamic>> products;
+
+  MobilePaymentScreen({
+    required this.totalAmount,
+    required this.products,
+  });
+
   @override
   _MobilePaymentScreenState createState() => _MobilePaymentScreenState();
 }
@@ -13,46 +22,11 @@ class MobilePaymentScreen extends StatefulWidget {
 class _MobilePaymentScreenState extends State<MobilePaymentScreen> {
   String? selectedPhonePrefix;
   String? phoneNumber;
-  String? referenceNumber;
+  String? referenceNumber; // Agregar variable para el número de referencia
   String? selectedBank;
-  String? userEnteredDate;
+  String? paymentDate;
+  String? paymentAmount;
   bool isCaptureUploaded = false;
-
-  final List<String> phonePrefixes = ['0416', '0426', '0414', '0424', '0412'];
-  final List<String> banks = [
-    '100% Banco, Banco Universal C.A.',
-    'Bancamiga Banco Microfinanciero C.A.',
-    'Bancaribe C.A. Banco Universal',
-    'Banco Activo, C.A. Banco Universal',
-    'Banco Agrícola de Venezuela, C.A. Banco Universal',
-    'Banco Bicentenario Banco Universal C.A.',
-    'Banco Caroní C.A. Banco Universal',
-    'Banco Central de Venezuela',
-    'Banco Industrial de Venezuela, C.A. Banco Universal',
-    'Banco del Pueblo Soberano, C.A. Banco de Desarrollo',
-    'Banco del Tesoro, C.A. Banco Universal',
-    'Banco de la Fuerza Armada Nacional Bolivariana, B.U.',
-    'Banco de la Gente Emprendedora C.A.',
-    'Banco de Venezuela S.A.C.A. Banco Universal',
-    'Banco Exterior C.A. Banco Universal',
-    'Banco Espirito Santo, S.A. Sucursal Venezuela B.U.',
-    'Banco Internacional de Desarrollo, C.A. Banco Universal',
-    'Banco Mercantil, C.A S.A.C.A. Banco Universal',
-    'Banco Nacional de Crédito, C.A. Banco Universal',
-    'Banco Occidental de Descuento, Banco Universal C.A.',
-    'Banco Plaza Banco Universal',
-    'Banco Provincial, S.A. Banco Universal',
-    'Banco Sofitasa Banco Universal',
-    'Bancrecer, S.A. Banco Microfinanciero',
-    'Banesco Banco Universal S.A.C.A.',
-    'Banplus Banco Universal, C.A.',
-    'BFC Banco Fondo Común C.A Banco Universal',
-    'Citibank N.A.',
-    'DelSur Banco Universal, C.A.',
-    'Instituto Municipal de Crédito Popular',
-    'Mi Banco Banco Microfinanciero C.A.',
-    'Venezolano de Crédito, S.A. Banco Universal',
-  ];
 
   @override
   Widget build(BuildContext context) {
@@ -75,44 +49,28 @@ class _MobilePaymentScreenState extends State<MobilePaymentScreen> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(
-                      Icons.payment,
-                      size: 48,
-                      color: Theme.of(context).primaryColor,
-                    ),
+                    _buildHeader(),
                     SizedBox(height: 16),
-                    Text(
-                      'Realiza tu pago móvil',
-                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                    ),
+                    _buildTotalAmount(),
                     SizedBox(height: 16),
                     _buildTextField('Número de referencia:', (value) {
-                      referenceNumber = value;
+                      referenceNumber = value; // Guardar el número de referencia
                     }),
                     SizedBox(height: 10),
                     _buildPhoneNumberField(),
                     SizedBox(height: 10),
-                    _buildDateField(), // Usamos el método modificado aquí
+                    _buildDateField(),
+                    SizedBox(height: 10),
+                    _buildTextField('Monto del pago:', (value) {
+                      paymentAmount = value;
+                    }, hintText: 'Ingrese el monto', inputFormatters: [CurrencyInputFormatter()]),
                     SizedBox(height: 10),
                     _buildBankDropdown(),
                     SizedBox(height: 10),
                     _buildFileUploadButton(),
-                    if (isCaptureUploaded)
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 10.0),
-                        child: Text('Captura de pantalla subida.'),
-                      ),
+                    if (isCaptureUploaded) _buildUploadConfirmation(),
                     SizedBox(height: 20),
-                    ElevatedButton(
-                      onPressed: _confirmPayment,
-                      child: Text('Confirmar Pago Móvil'),
-                      style: ElevatedButton.styleFrom(
-                        padding: EdgeInsets.symmetric(vertical: 15, horizontal: 30),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(30),
-                        ),
-                      ),
-                    ),
+                    _buildConfirmButton(),
                   ],
                 ),
               ),
@@ -123,40 +81,43 @@ class _MobilePaymentScreenState extends State<MobilePaymentScreen> {
     );
   }
 
-  Widget _buildDateField() {
+  Widget _buildHeader() {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Fecha del pago'),
-        TextField(
-          onChanged: (value) {
-           setState(() {
-             userEnteredDate = value;
-           });
-          },
-          inputFormatters: [DateInputFormatter()], // Usamos el TextInputFormatter aquí
-          decoration: InputDecoration(
-            hintText: 'DD-MM-AA',
-            border: OutlineInputBorder(),
-            contentPadding: EdgeInsets.symmetric(vertical: 10, horizontal: 10),
-          ),
+        Icon(
+          Icons.mobile_friendly,
+          size: 48,
+          color: Theme.of(context).primaryColor,
+        ),
+        Text(
+          'Pago móvil',
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
         ),
       ],
     );
   }
 
-  Widget _buildTextField(String label, Function(String) onChanged, {String? hintText}) {
+  Widget _buildTotalAmount() {
+    return Text(
+      'Total a Pagar: \$${widget.totalAmount.toStringAsFixed(2)}',
+      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+    );
+  }
+
+  Widget _buildTextField(String label, Function(String) onChanged, {String? hintText, List<TextInputFormatter>? inputFormatters}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(label),
         TextField(
           onChanged: onChanged,
+          inputFormatters: inputFormatters,
           decoration: InputDecoration(
             hintText: hintText,
             border: OutlineInputBorder(),
             contentPadding: EdgeInsets.symmetric(vertical: 10, horizontal: 10),
           ),
+          keyboardType: TextInputType.text,
         ),
       ],
     );
@@ -186,7 +147,7 @@ class _MobilePaymentScreenState extends State<MobilePaymentScreen> {
             ),
             SizedBox(width: 10),
             Expanded(
-              child: TextField(
+ child: TextField(
                 keyboardType: TextInputType.phone,
                 onChanged: (value) {
                   phoneNumber = value;
@@ -199,6 +160,28 @@ class _MobilePaymentScreenState extends State<MobilePaymentScreen> {
               ),
             ),
           ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDateField() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Fecha del pago'),
+        TextField(
+          onChanged: (value) {
+            setState(() {
+              paymentDate = value;
+            });
+          },
+          inputFormatters: [DateInputFormatter()],
+          decoration: InputDecoration(
+            hintText: 'DD-MM-AA',
+            border: OutlineInputBorder(),
+            contentPadding: EdgeInsets.symmetric(vertical: 10, horizontal: 10),
+          ),
         ),
       ],
     );
@@ -242,49 +225,77 @@ class _MobilePaymentScreenState extends State<MobilePaymentScreen> {
               isCaptureUploaded = true; // Simulamos que se subió una captura
             });
           },
-          child: Text('Seleccionar archivo'),
           style: ElevatedButton.styleFrom(
             padding: EdgeInsets.symmetric(vertical: 15, horizontal: 30),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(30),
             ),
           ),
+          child: Text('Seleccionar archivo'),
         ),
       ],
     );
   }
 
-    void _confirmPayment() async {
-  if (referenceNumber != null && (isCaptureUploaded || phoneNumber != null)) {
-    // Asegúrate de que el número de teléfono incluya el prefijo seleccionado
-    String fullPhoneNumber = '$selectedPhonePrefix-$phoneNumber'; // Concatenar el prefijo con el número de teléfono
+  Widget _buildUploadConfirmation() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 10.0),
+      child: Text('Captura de pantalla subida.'),
+    );
+  }
 
-    // Crear un mapa con los datos que deseas subir
+  Widget _buildConfirmButton() {
+    return ElevatedButton(
+      onPressed: _confirmPayment,
+      style: ElevatedButton.styleFrom(
+        padding: EdgeInsets.symmetric(vertical: 15, horizontal: 30),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(30),
+        ),
+      ),
+      child: Text('Confirmar Pago Móvil'),
+    );
+  }
+
+  void _confirmPayment() async {
+  if (referenceNumber != null && (isCaptureUploaded || phoneNumber != null)) {
+    // Crear un mapa con los datos del pago
     Map<String, dynamic> paymentData = {
       'referenceNumber': referenceNumber,
-      'phoneNumber': fullPhoneNumber, // Usar el número de teléfono completo
+      'phoneNumber': '$selectedPhonePrefix$phoneNumber',
+      'paymentDate': paymentDate, // Asegúrate de que esta variable esté definida
       'selectedBank': selectedBank,
+      'paymentAmount': paymentAmount,
+      'paymentStatus': 'pending',
+      'paymentMethod': 'pago_movil',
       'isCaptureUploaded': isCaptureUploaded,
-      'user': FirebaseAuth.instance.currentUser!.uid,
-      'date': userEnteredDate,
-      'timestamp': FieldValue.serverTimestamp(), // Agregar un timestamp
+      'timestamp': FieldValue.serverTimestamp(), // Para registrar la fecha y hora
     };
 
-    try {
-      // Subir los datos a Firestore
-      await FirebaseFirestore.instance.collection('pagosMoviles').add(paymentData);
-      
-      // Si la subida es exitosa, mostrar un mensaje
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Pago Móvil procesado con éxito!')),
-      );
+    // Solo agregar la lista de productos si no está vacía
+    if (widget.products.isNotEmpty) {
+      // Transformar la lista de productos para que contenga solo el ID y la cantidad
+      List<Map<String, dynamic>> productList = widget.products.map((product) {
+        return {
+          'productId': product['id'], // Asegúrate de que 'id' sea la clave correcta
+          'quantity': product['quantity'], // Asegúrate de que 'quantity' sea la clave correcta
+          'price': product['price'],
+        };
+      }).toList();
 
-      // Regresar a la pantalla anterior
-      Navigator.pop(context);
-    } catch (e) {
-      // Manejo de errores
+      paymentData['products'] = productList; // Agregar la lista de productos al mapa
+    }
+
+    // Guardar en Firestore
+    try {
+      await FirebaseFirestore.instance.collection('payments').add(paymentData);
+      Navigator.pop(context); // Regresar a la pantalla anterior
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error al procesar el pago: $e')),
+        SnackBar(content: Text('Pago Móvil procesado y guardado con éxito!')),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error al guardar el pago: $e')),
       );
     }
   } else {
@@ -294,4 +305,3 @@ class _MobilePaymentScreenState extends State<MobilePaymentScreen> {
   }
 }
 }
-
