@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../data/products.dart'; // Importa la lista de productos
-import '../../main.dart';
 import '../../models/cart.dart';
+import '../../services/my_app_state.dart';
 import 'product_detail_screen.dart';
 import 'search_page.dart'; // Importa la página de búsqueda
+import 'package:flutter_animate/flutter_animate.dart'; // Asegúrate de que esta importación esté presente
 
 class ProductScreen extends StatelessWidget {
   final Cart cart;
@@ -60,12 +61,13 @@ class ProductScreen extends StatelessWidget {
               child: Card(
                 child: Column(
                   children: [
+                    // Animar la imagen
                     Expanded(
                       child: Image.network(
                         product.imageUrl,
                         fit: BoxFit.cover,
                         width: double.infinity,
-                      ),
+                      ).animate().fadeIn(duration: 500.ms, curve: Curves.easeInOut).slide(duration: 500.ms, curve: Curves.easeInOut),
                     ),
                     Padding(
                       padding: const EdgeInsets.all(8.0),
@@ -75,11 +77,19 @@ class ProductScreen extends StatelessWidget {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(product.name, style: TextStyle(fontWeight: FontWeight.bold)),
-                                Text('\$${product.price}'),
+                                // Animar el nombre del producto
+                                Text(
+                                  product.name,
+                                  style: TextStyle(fontWeight: FontWeight.bold),
+                                ).animate().fadeIn(duration: 500.ms, curve: Curves.easeInOut).slide(duration: 500.ms, curve: Curves.easeInOut),
+                                // Animar el precio del producto
+                                Text(
+                                  '\$${product.price}',
+                                ).animate().fadeIn(duration: 500.ms, curve: Curves.easeInOut).slide(duration: 500.ms, curve: Curves.easeInOut),
                               ],
                             ),
                           ),
+                          // Animar el icono de favorito
                           IconButton(
                             icon: Icon(
                               isFavorite ? Icons.favorite : Icons.favorite_border,
@@ -88,13 +98,13 @@ class ProductScreen extends StatelessWidget {
                             onPressed: () {
                               appState.toggleFavorite(product);
                             },
-                          ),
+                          ).animate().fadeIn(duration: 500.ms, curve: Curves.easeInOut).slide(duration: 500.ms, curve: Curves.easeInOut),
                         ],
                       ),
                     ),
                   ],
                 ),
-              ),
+              ).animate().fadeIn(duration: 500.ms, curve: Curves.easeInOut).slide(duration: 500.ms, curve: Curves.easeInOut),
             );
           },
         ),

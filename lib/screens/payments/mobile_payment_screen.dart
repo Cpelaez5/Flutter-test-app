@@ -2,7 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:uuid/uuid.dart'; // Importa la librería uuid
+import 'package:uuid/uuid.dart';
 import '../../data/payment_data.dart';
 import '../../utils/currency_input_formatter.dart';
 import '../../utils/text_input_formatter.dart';
@@ -11,10 +11,11 @@ class MobilePaymentScreen extends StatefulWidget {
   final double totalAmount;
   final List<Map<String, dynamic>> products;
 
-  MobilePaymentScreen({
+  const MobilePaymentScreen({
+    Key? key,
     required this.totalAmount,
     required this.products,
-  });
+  }) : super(key: key);
 
   @override
   _MobilePaymentScreenState createState() => _MobilePaymentScreenState();
@@ -23,18 +24,18 @@ class MobilePaymentScreen extends StatefulWidget {
 class _MobilePaymentScreenState extends State<MobilePaymentScreen> {
   String? selectedPhonePrefix;
   String? phoneNumber;
-  String? referenceNumber; // Agregar variable para el número de referencia
+  String? referenceNumber;
   String? selectedBank;
   String? paymentDate;
   String? paymentAmount;
   bool isCaptureUploaded = false;
-  final Uuid _uuid = Uuid(); // Instancia de Uuid para generar tokens
+  final Uuid _uuid = Uuid();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Pago Móvil'),
+        title: const Text('Pago Móvil'),
         centerTitle: true,
       ),
       body: Padding(
@@ -52,26 +53,26 @@ class _MobilePaymentScreenState extends State<MobilePaymentScreen> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     _buildHeader(),
-                    SizedBox(height: 16),
+                    const SizedBox(height: 16),
                     _buildTotalAmount(),
-                    SizedBox(height: 16),
+                    const SizedBox(height: 16),
                     _buildTextField('Número de referencia:', (value) {
-                      referenceNumber = value; // Guardar el número de referencia
+                      referenceNumber = value;
                     }),
-                    SizedBox(height: 10),
+                    const SizedBox(height: 10),
                     _buildPhoneNumberField(),
-                    SizedBox(height: 10),
+                    const SizedBox(height: 10),
                     _buildDateField(),
-                    SizedBox(height: 10),
+                    const SizedBox(height: 10),
                     _buildTextField('Monto del pago:', (value) {
                       paymentAmount = value;
                     }, hintText: 'Ingrese el monto', inputFormatters: [CurrencyInputFormatter()]),
-                    SizedBox(height: 10),
+                    const SizedBox(height: 10),
                     _buildBankDropdown(),
-                    SizedBox(height: 10),
+                    const SizedBox(height: 10),
                     _buildFileUploadButton(),
                     if (isCaptureUploaded) _buildUploadConfirmation(),
-                    SizedBox(height: 20),
+                    const SizedBox(height: 20),
                     _buildConfirmButton(),
                   ],
                 ),
@@ -91,7 +92,7 @@ class _MobilePaymentScreenState extends State<MobilePaymentScreen> {
           size: 48,
           color: Theme.of(context).primaryColor,
         ),
-        Text(
+        const Text(
           'Pago móvil',
           style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
         ),
@@ -102,7 +103,7 @@ class _MobilePaymentScreenState extends State<MobilePaymentScreen> {
   Widget _buildTotalAmount() {
     return Text(
       'Total a Pagar: \$${widget.totalAmount.toStringAsFixed(2)}',
-      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
     );
   }
 
@@ -116,8 +117,8 @@ class _MobilePaymentScreenState extends State<MobilePaymentScreen> {
           inputFormatters: inputFormatters,
           decoration: InputDecoration(
             hintText: hintText,
-            border: OutlineInputBorder(),
-            contentPadding: EdgeInsets.symmetric(vertical: 10, horizontal: 10),
+            border: const OutlineInputBorder(),
+            contentPadding: const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
           ),
           keyboardType: TextInputType.text,
         ),
@@ -129,12 +130,12 @@ class _MobilePaymentScreenState extends State<MobilePaymentScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Número de teléfono:'),
+        const Text('Número de teléfono:'),
         Row(
           children: [
             DropdownButton<String>(
               value: selectedPhonePrefix,
-              hint: Text('código celular'),
+              hint: const Text('código celular'),
               items: phonePrefixes.map((String prefix) {
                 return DropdownMenuItem<String>(
                   value: prefix,
@@ -147,14 +148,14 @@ class _MobilePaymentScreenState extends State<MobilePaymentScreen> {
                 });
               },
             ),
-            SizedBox(width: 10),
+            const SizedBox(width: 10),
             Expanded(
               child: TextField(
                 keyboardType: TextInputType.phone,
                 onChanged: (value) {
                   phoneNumber = value;
                 },
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   hintText: 'Número',
                   border: OutlineInputBorder(),
                   contentPadding: EdgeInsets.symmetric(vertical: 10, horizontal: 10),
@@ -171,7 +172,7 @@ class _MobilePaymentScreenState extends State<MobilePaymentScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Fecha del pago'),
+        const Text('Fecha del pago'),
         TextField(
           onChanged: (value) {
             setState(() {
@@ -179,7 +180,7 @@ class _MobilePaymentScreenState extends State<MobilePaymentScreen> {
             });
           },
           inputFormatters: [DateInputFormatter()],
-          decoration: InputDecoration(
+          decoration: const InputDecoration(
             hintText: 'DD-MM-AA',
             border: OutlineInputBorder(),
             contentPadding: EdgeInsets.symmetric(vertical: 10, horizontal: 10),
@@ -193,11 +194,11 @@ class _MobilePaymentScreenState extends State<MobilePaymentScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Banco emisor:'),
+        const Text('Banco emisor:'),
         DropdownButton<String>(
           isExpanded: true,
           value: selectedBank,
-          hint: Text('Seleccione banco'),
+          hint: const Text('Seleccione banco'),
           items: banks.map((String bank) {
             return DropdownMenuItem<String>(
               value: bank,
@@ -218,7 +219,7 @@ class _MobilePaymentScreenState extends State<MobilePaymentScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Subir captura de pantalla del pago (opcional):'),
+        const Text('Subir captura de pantalla del pago (opcional):'),
         ElevatedButton(
           onPressed: () {
             // Aquí puedes implementar la lógica para subir una imagen
@@ -228,12 +229,12 @@ class _MobilePaymentScreenState extends State<MobilePaymentScreen> {
             });
           },
           style: ElevatedButton.styleFrom(
-            padding: EdgeInsets.symmetric(vertical: 15, horizontal: 30),
+            padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 30),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(30),
             ),
           ),
-          child: Text('Seleccionar archivo'),
+          child: const Text('Seleccionar archivo'),
         ),
       ],
     );
@@ -242,7 +243,7 @@ class _MobilePaymentScreenState extends State<MobilePaymentScreen> {
   Widget _buildUploadConfirmation() {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 10.0),
-      child: Text('Captura de pantalla subida.'),
+      child: const Text('Captura de pantalla subida.'),
     );
   }
 
@@ -250,12 +251,12 @@ class _MobilePaymentScreenState extends State<MobilePaymentScreen> {
     return ElevatedButton(
       onPressed: _confirmPayment,
       style: ElevatedButton.styleFrom(
-        padding: EdgeInsets.symmetric(vertical: 15, horizontal: 30),
+        padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 30),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(30),
         ),
       ),
-      child: Text('Confirmar Pago Móvil'),
+      child: const Text('Confirmar Pago Móvil'),
     );
   }
 
@@ -282,7 +283,7 @@ class _MobilePaymentScreenState extends State<MobilePaymentScreen> {
         List<Map<String, dynamic>> productList = widget.products.map((product) {
           return {
             'productId': product['id'], // Asegúrate de que 'id' sea la clave correcta
-            'quantity': product[' quantity'], // Asegúrate de que 'quantity' sea la clave correcta
+            'quantity': product['quantity'], // Asegúrate de que 'quantity' sea la clave correcta
             'price': product['price'],
           };
         }).toList();
@@ -292,10 +293,10 @@ class _MobilePaymentScreenState extends State<MobilePaymentScreen> {
 
       // Guardar en Firestore
       try {
-        await FirebaseFirestore.instance.collection('payments').add(paymentData);
+        await FirebaseFirestore.instance.collection('payments').add (paymentData);
         Navigator.pop(context); // Regresar a la pantalla anterior
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Pago Móvil registrado con éxito!')),
+          const SnackBar(content: Text('Pago Móvil registrado con éxito!')),
         );
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -304,7 +305,7 @@ class _MobilePaymentScreenState extends State<MobilePaymentScreen> {
       }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Por favor, completa todos los campos requeridos.')),
+        const SnackBar(content: Text('Por favor, completa todos los campos requeridos.')),
       );
     }
   }

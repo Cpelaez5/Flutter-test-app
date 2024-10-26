@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class Payment {
+  final String id; // ID del documento en Firestore
   final String referenceNumber;
   final String phoneNumber;
   final String paymentMethod;
@@ -15,6 +16,7 @@ class Payment {
   final List<dynamic> products;
 
   Payment({
+    required this.id, // Agregar el ID en el constructor
     required this.referenceNumber,
     required this.phoneNumber,
     required this.paymentMethod,
@@ -34,17 +36,15 @@ class Payment {
 
     DateTime parsedDate;
     if (data['timestamp'] is Timestamp) {
-      // Si el campo es un Timestamp, conviértelo a DateTime
       parsedDate = (data['timestamp'] as Timestamp).toDate();
     } else if (data['timestamp'] is String) {
-      // Si el campo es un String, intenta parsearlo
       parsedDate = _parseCustomDate(data['timestamp']);
     } else {
-      // Manejo de error o valor predeterminado
       parsedDate = DateTime.now(); // O puedes lanzar una excepción
     }
 
     return Payment(
+      id: doc.id, // Aquí obtienes el ID del documento
       referenceNumber: data['referenceNumber'] ?? '',
       phoneNumber: data['phoneNumber'] ?? '',
       paymentMethod: data['paymentMethod'] ?? '',
@@ -61,7 +61,6 @@ class Payment {
   }
 
   static DateTime _parseCustomDate(String dateString) {
-    // Manejo del formato YY-MM-DD
     if (dateString.contains('-')) {
       List<String> parts = dateString.split('-');
       if (parts.length != 3) {
@@ -74,7 +73,6 @@ class Payment {
 
       return DateTime(year, month, day);
     } else {
-      // Manejo del formato sin guiones (ejemplo: 102030)
       if (dateString.length == 6) {
         int year = int.parse(dateString.substring(0, 2)) + 2000;
         int month = int.parse(dateString.substring(2, 4));

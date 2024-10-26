@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../models/cart.dart';
 import '../../models/product.dart';
-import '../../main.dart'; // Asegúrate de importar donde está definido MyAppState
+import '../../services/my_app_state.dart'; 
 
 class ProductDetailScreen extends StatefulWidget {
   final Product product;

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../widgets/auth_wrapper.dart';
+
 class SplashScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -15,5 +17,27 @@ class SplashScreen extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+class SplashScreenWrapper extends StatefulWidget {
+  @override
+  SplashScreenWrapperState createState() => SplashScreenWrapperState();
+}
+
+class SplashScreenWrapperState extends State<SplashScreenWrapper> {
+  @override
+  void initState() {
+    super.initState();
+    Future.delayed(Duration(seconds: 3), () {
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (context) => AuthWrapper()),
+      );
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SplashScreen(); // Asegúrate de que esta clase esté definida en splash_screen.dart
   }
 }

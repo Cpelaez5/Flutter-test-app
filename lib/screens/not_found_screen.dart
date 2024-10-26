@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 
-class HomeScreen extends StatelessWidget {
+class NotFoundScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Home Screen'),
+        title: Text('No Encontrado'),
       ),
       body: Center(
-        child: Text('Bienvenido a la pantalla de inicio'),
+        child: Text('La página que buscas no existe.'),
       ),
     );
   }

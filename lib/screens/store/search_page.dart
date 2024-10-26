@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../models/cart.dart';
 import '../../models/product.dart';
 import 'product_detail_screen.dart';
+import 'package:flutter_animate/flutter_animate.dart'; // Asegúrate de que esta importación esté presente
 
 class ProductSearchPage extends StatefulWidget {
   final List<Product> products;
@@ -10,10 +11,10 @@ class ProductSearchPage extends StatefulWidget {
   const ProductSearchPage({super.key, required this.products, required this.cart});
 
   @override
-  _ProductSearchPageState createState() => _ProductSearchPageState();
+  ProductSearchPageState createState() => ProductSearchPageState();
 }
 
-class _ProductSearchPageState extends State<ProductSearchPage> {
+class ProductSearchPageState extends State<ProductSearchPage> {
   TextEditingController _searchController = TextEditingController();
   List<Product> _filteredProducts = [];
 
@@ -65,8 +66,8 @@ class _ProductSearchPageState extends State<ProductSearchPage> {
                 itemCount: _filteredProducts.length,
                 itemBuilder: (context, index) {
                   final product = _filteredProducts[index];
+
                   return ListTile(
-                    // ignore: unnecessary_null_comparison
                     leading: product.imageUrl != null
                         ? Image.network(
                             product.imageUrl,
@@ -75,7 +76,7 @@ class _ProductSearchPageState extends State<ProductSearchPage> {
                             fit: BoxFit.cover,
                           )
                         : null,
-                    title: Text(product.name),
+                    title: Text(product.name).animate().fadeIn(duration: 500.ms, curve: Curves.easeInOut).slide(duration: 500.ms, curve: Curves.easeInOut),
                     subtitle: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -85,14 +86,14 @@ class _ProductSearchPageState extends State<ProductSearchPage> {
                               : product.description,
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
-                        ),
+                        ).animate().fadeIn(duration: 500.ms, curve: Curves.easeInOut).slide(duration: 500.ms, curve: Curves.easeInOut),
                         Text(
                           'Precio: \$${product.price}',
                           style: TextStyle(
                             color: Colors.grey,
                             fontSize: 12,
                           ),
-                        ),
+                        ).animate().fadeIn(duration: 500.ms, curve: Curves.easeInOut).slide(duration: 500.ms, curve: Curves.easeInOut),
                       ],
                     ),
                     trailing: IconButton(
@@ -105,7 +106,7 @@ class _ProductSearchPageState extends State<ProductSearchPage> {
                           SnackBar(content: Text('${product.name} added to cart')),
                         );
                       },
-                    ),
+                    ).animate().fadeIn(duration: 500.ms, curve: Curves.easeInOut).slide(duration: 500.ms, curve: Curves.easeInOut),
                     onTap: () {
                       // Navegar a la página de detalles del producto
                       Navigator.push(
@@ -118,7 +119,7 @@ class _ProductSearchPageState extends State<ProductSearchPage> {
                         ),
                       );
                     },
-                  );
+                  ).animate().fadeIn(duration: 500.ms, curve: Curves.easeInOut).slide(duration: 500.ms, curve: Curves.easeInOut);
                 },
               ),
             ),

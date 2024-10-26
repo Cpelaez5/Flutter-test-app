@@ -1,7 +1,9 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/widgets/square_button.dart';
 import 'package:provider/provider.dart';
 import '../../services/auth_service.dart';
+import 'user_order_screen.dart';
 
 class UserScreen extends StatefulWidget {
   @override
@@ -11,6 +13,10 @@ class UserScreen extends StatefulWidget {
 class _UserScreenState extends State<UserScreen> {
   // Variable de instancia para el rol del usuario
   String? userRole;
+  //almacenar el uid del usuario actual
+  String userId = FirebaseAuth.instance.currentUser!.uid;
+
+  
 
   @override
   void initState() {
@@ -44,7 +50,12 @@ class _UserScreenState extends State<UserScreen> {
           children: [
             if (userRole == 'cliente')
             buildSquareButton('Mis Pedidos', Icons.list, () {
-              // Navegar a la pantalla de gestión de usuarios
+              Navigator.push(
+                context,
+                  MaterialPageRoute(
+                    builder: (context) => UserOrdersScreen(userId: userId),
+                  ),
+              );// Navegar a la pantalla de gestión de usuarios
             }),
             buildSquareButton('Mis Datos', Icons.person, () {
               Navigator.pushNamed(context, '/profile'); // Navegar a la pantalla de pedidos
