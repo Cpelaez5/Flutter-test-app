@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_application_1/widgets/square_button.dart';
 import 'package:provider/provider.dart';
 import '../../services/auth_service.dart';
-import '../../widgets/square_button.dart';
 
-class AdminScreen extends StatefulWidget {
+class UserScreen extends StatefulWidget {
   @override
-  _AdminScreenState createState() => _AdminScreenState();
+  _UserScreenState createState() => _UserScreenState();
 }
 
-class _AdminScreenState extends State<AdminScreen> {
-   String? userRole;
+class _UserScreenState extends State<UserScreen> {
+  // Variable de instancia para el rol del usuario
+  String? userRole;
 
   @override
   void initState() {
@@ -17,7 +18,7 @@ class _AdminScreenState extends State<AdminScreen> {
     // Verificar si el usuario tiene un rol
     final authService = Provider.of<AuthService>(context, listen: false);
     authService.getRole(authService.currentUser?.uid ?? '').then((role) {
-      if (role != 'administrador') {
+      if (role == null) {
         Navigator.of(context).pushReplacementNamed('/');
       } else {
         // Actualizar el rol del usuario
@@ -32,7 +33,7 @@ class _AdminScreenState extends State<AdminScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Panel de Administrador'),
+        title: Text('Panel de Usuario'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -41,11 +42,12 @@ class _AdminScreenState extends State<AdminScreen> {
           crossAxisSpacing: 16.0,
           mainAxisSpacing: 16.0,
           children: [
-            buildSquareButton('Ver Pedidos', Icons.list, () {
-              Navigator.pushNamed(context, '/orders'); // Navegar a la pantalla de pedidos
-            }),
-            buildSquareButton('Gestión de Usuarios', Icons.people, () {
+            if (userRole == 'cliente')
+            buildSquareButton('Mis Pedidos', Icons.list, () {
               // Navegar a la pantalla de gestión de usuarios
+            }),
+            buildSquareButton('Mis Datos', Icons.person, () {
+              Navigator.pushNamed(context, '/profile'); // Navegar a la pantalla de pedidos
             }),
             buildSquareButton('Reportes', Icons.report, () {
               // Navegar a la pantalla de reportes

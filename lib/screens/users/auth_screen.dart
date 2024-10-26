@@ -59,12 +59,8 @@ class _AuthScreenState extends State<AuthScreen> {
     if (mounted) { // Verificar si el widget está montado
       if (user != null) {
         // Verificar si el usuario tiene el rol de administrador
-        final role = await authService.getRole(user.uid);
-        if (role == 'administrador') {
-          Navigator.of(context).pushReplacementNamed('/admin');
-        } else {
+        // final role = await authService.getRole(user.uid);
           Navigator.of(context).pushReplacementNamed('/home');
-        }
       } else {
         _showSnackBar('Error al autenticar. Por favor, verifica tus credenciales.');
       }

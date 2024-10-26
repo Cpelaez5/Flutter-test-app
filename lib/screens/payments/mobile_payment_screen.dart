@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:uuid/uuid.dart'; // Importa la librería uuid
 import '../../data/payment_data.dart';
 import '../../utils/currency_input_formatter.dart';
 import '../../utils/text_input_formatter.dart';
@@ -27,6 +28,7 @@ class _MobilePaymentScreenState extends State<MobilePaymentScreen> {
   String? paymentDate;
   String? paymentAmount;
   bool isCaptureUploaded = false;
+  final Uuid _uuid = Uuid(); // Instancia de Uuid para generar tokens
 
   @override
   Widget build(BuildContext context) {
@@ -147,7 +149,7 @@ class _MobilePaymentScreenState extends State<MobilePaymentScreen> {
             ),
             SizedBox(width: 10),
             Expanded(
- child: TextField(
+              child: TextField(
                 keyboardType: TextInputType.phone,
                 onChanged: (value) {
                   phoneNumber = value;
@@ -258,50 +260,52 @@ class _MobilePaymentScreenState extends State<MobilePaymentScreen> {
   }
 
   void _confirmPayment() async {
-  if (referenceNumber != null && (isCaptureUploaded || phoneNumber != null)) {
-    // Crear un mapa con los datos del pago
-    Map<String, dynamic> paymentData = {
-      'referenceNumber': referenceNumber,
-      'phoneNumber': '$selectedPhonePrefix$phoneNumber',
-      'paymentDate': paymentDate, // Asegúrate de que esta variable esté definida
-      'selectedBank': selectedBank,
-      'paymentAmount': paymentAmount,
-      'paymentStatus': 'pending',
-      'paymentMethod': 'pago_movil',
-      'isCaptureUploaded': isCaptureUploaded,
-      'timestamp': FieldValue.serverTimestamp(), // Para registrar la fecha y hora
-    };
+    if (referenceNumber != null && (isCaptureUploaded || phoneNumber != null)) {
+      // Crear un mapa con los datos del pago
+      Map<String, dynamic> paymentData = {
+        'referenceNumber': referenceNumber,
+        'phoneNumber': '$selectedPhonePrefix-$phoneNumber',
+        'paymentDate': paymentDate, // Asegúrate de que esta variable esté definida
+        'selectedBank': selectedBank,
+        'paymentAmount': paymentAmount,
+        'paymentStatus': 'pending',
+        'paymentMethod': 'pago_movil',
+        'isCaptureUploaded': isCaptureUploaded,
+        'timestamp': FieldValue.serverTimestamp(), // Para registrar la fecha y hora
+        'uid': FirebaseAuth.instance.currentUser!.uid, // Almacenar el uid del usuario
+        'token': _uuid.v4(), // Generar un token único para el pedido
+      };
 
-    // Solo agregar la lista de productos si no está vacía
-    if (widget.products.isNotEmpty) {
-      // Transformar la lista de productos para que contenga solo el ID y la cantidad
-      List<Map<String, dynamic>> productList = widget.products.map((product) {
-        return {
-          'productId': product['id'], // Asegúrate de que 'id' sea la clave correcta
-          'quantity': product['quantity'], // Asegúrate de que 'quantity' sea la clave correcta
-          'price': product['price'],
-        };
-      }).toList();
+      // Solo agregar la lista de productos si no está vacía
+      if (widget.products.isNotEmpty) {
+        // Transformar la lista de productos para que contenga solo el ID y la cantidad
+        List<Map<String, dynamic>> productList = widget.products.map((product) {
+          return {
+            'productId': product['id'], // Asegúrate de que 'id' sea la clave correcta
+            'quantity': product[' quantity'], // Asegúrate de que 'quantity' sea la clave correcta
+            'price': product['price'],
+          };
+        }).toList();
 
-      paymentData['products'] = productList; // Agregar la lista de productos al mapa
-    }
+        paymentData['products'] = productList; // Agregar la lista de productos al mapa
+      }
 
-    // Guardar en Firestore
-    try {
-      await FirebaseFirestore.instance.collection('payments').add(paymentData);
-      Navigator.pop(context); // Regresar a la pantalla anterior
+      // Guardar en Firestore
+      try {
+        await FirebaseFirestore.instance.collection('payments').add(paymentData);
+        Navigator.pop(context); // Regresar a la pantalla anterior
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Pago Móvil registrado con éxito!')),
+        );
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error al guardar el pago: $e')),
+        );
+      }
+    } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Pago Móvil procesado y guardado con éxito!')),
-      );
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error al guardar el pago: $e')),
+        SnackBar(content: Text('Por favor, completa todos los campos requeridos.')),
       );
     }
-  } else {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Por favor, completa todos los campos requeridos.')),
-    );
   }
-}
 }

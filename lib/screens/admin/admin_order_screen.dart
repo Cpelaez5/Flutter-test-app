@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:timeago/timeago.dart' as timeago;
-import '../../data/products.dart';
 import '../../models/order_model.dart';
 import '../payments/payment_detail_screen.dart';
 

@@ -2,7 +2,7 @@ class UserModel {
   final String uid;
   final String name;
   final String email;
-  final String role; // 'administrador' o 'cliente'
+  final String role; // 'administrador', 'vendedor' o 'cliente'
 
   UserModel({
     required this.uid,

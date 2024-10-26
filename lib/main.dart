@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_application_1/screens/users/user_screen.dart';
 import './data/products.dart';
 import 'screens/store/product_screen.dart';
 import 'package:provider/provider.dart';
@@ -37,7 +38,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => MyAppState()),
       ],
       child: MaterialApp(
-        title: 'Cafetín Ibero',
+        title: 'Mi Cafetín',
         theme: ThemeData(
           useMaterial3: true,
           colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepOrange),
@@ -49,6 +50,7 @@ class MyApp extends StatelessWidget {
           '/home': (context) => MyHomePage(),
           '/admin': (context) => AdminScreen(),
           '/orders': (context) => AdminOrderScreen(),
+          '/profile': (context) => UserProfileScreen(),
         },
         onUnknownRoute: (settings) {
           return MaterialPageRoute(builder: (context) => NotFoundScreen());
@@ -242,7 +244,7 @@ class _MyHomePageState extends State<MyHomePage> {
         page = ProductSearchPage(products: products, cart: cart);
         break;
       case 3:
-        page = UserProfileScreen();
+        page = UserScreen();
         break;
       case 4:
         if (userRole == 'cliente') { // Mostrar solo si el rol es administrador

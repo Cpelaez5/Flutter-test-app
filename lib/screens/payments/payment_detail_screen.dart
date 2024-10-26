@@ -12,11 +12,12 @@ class PaymentDetailScreen extends StatelessWidget {
     DateTime paymentDateTime = payment.timestamp;
 
     String paymentDetails = 
+    'Fecha del pago: ${payment.paymentDate}\n'
+    'Referencia: ${payment.referenceNumber}\n'
       'Monto: ${payment.paymentAmount} Bs.\n'
       'Estado: ${payment.paymentStatus}\n'
       'Banco: ${payment.selectedBank}\n'
-      'Referencia: ${payment.referenceNumber}\n'
-      'Fecha del pago: ${payment.paymentDate}\n'
+      'Usuario: ${payment.uid}\n'
       'Registrado: ${paymentDateTime.day}/${paymentDateTime.month}/${paymentDateTime.year} ${paymentDateTime.hour}:${paymentDateTime.minute}';
        
     if (payment.paymentMethod == 'pago_movil') {

@@ -14,6 +14,9 @@ class AuthService with ChangeNotifier {
         password: password,
       );
 
+       await _auth.currentUser!.sendEmailVerification();
+       print("Correo de verificación enviado a ${result.user?.email}");
+
       // Crear un nuevo UserModel
       UserModel newUser  = UserModel(
         uid: result.user!.uid,
@@ -23,7 +26,7 @@ class AuthService with ChangeNotifier {
       );
 
       // Guardar el usuario en Firestore
-      await FirebaseFirestore.instance.collection('users').doc(newUser .uid).set(newUser .toMap());
+      await FirebaseFirestore.instance.collection('users').doc(newUser .uid).set(newUser.toMap());
 
       return result.user;
     } catch (e) {

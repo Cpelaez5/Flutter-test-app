@@ -6,11 +6,12 @@ class Payment {
   final String paymentMethod;
   final String selectedBank;
   final bool isCaptureUploaded;
-  final String user;
+  final String uid;
   final DateTime timestamp;
   final String paymentAmount;
   final String paymentStatus;
   final String paymentDate;
+  final String token;
   final List<dynamic> products;
 
   Payment({
@@ -19,12 +20,13 @@ class Payment {
     required this.paymentMethod,
     required this.selectedBank,
     required this.isCaptureUploaded,
-    required this.user,
+    required this.uid,
     required this.timestamp, 
     required this.paymentAmount, 
     required this.paymentStatus, 
     required this.paymentDate, 
     required this.products,
+    required this.token,
   });
 
   factory Payment.fromFirestore(DocumentSnapshot doc) {
@@ -49,11 +51,12 @@ class Payment {
       selectedBank: data['selectedBank'] ?? '',
       paymentAmount: data['paymentAmount'] ?? '',
       isCaptureUploaded: data['isCaptureUploaded'] ?? false,
-      user: data['user'] ?? '',
+      uid: data['user'] ?? '',
       paymentStatus: data['paymentStatus'] ?? '',
       timestamp: parsedDate,
       paymentDate: data['paymentDate'] ?? '',
       products: data['products'] ?? [],
+      token: data['token'] ?? '',
     );
   }
 
