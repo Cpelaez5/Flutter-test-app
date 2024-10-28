@@ -7,10 +7,10 @@ import 'user_order_screen.dart';
 
 class UserScreen extends StatefulWidget {
   @override
-  _UserScreenState createState() => _UserScreenState();
+  UserScreenState createState() => UserScreenState();
 }
 
-class _UserScreenState extends State<UserScreen> {
+class UserScreenState extends State<UserScreen> {
   // Variable de instancia para el rol del usuario
   String? userRole;
   //almacenar el uid del usuario actual
@@ -24,15 +24,11 @@ class _UserScreenState extends State<UserScreen> {
     // Verificar si el usuario tiene un rol
     final authService = Provider.of<AuthService>(context, listen: false);
     authService.getRole(authService.currentUser?.uid ?? '').then((role) {
-      if (role == null) {
-        Navigator.of(context).pushReplacementNamed('/');
-      } else {
-        // Actualizar el rol del usuario
-        setState(() {
-          userRole = role;
+      // Actualizar el rol del usuario
+      setState(() {
+        userRole = role;
+      });
         });
-      }
-    });
   }
 
   @override

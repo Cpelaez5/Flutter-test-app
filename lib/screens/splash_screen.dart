@@ -12,7 +12,8 @@ class SplashScreen extends StatelessWidget {
           children: [
             Icon(Icons.coffee, size: 100, color: Colors.brown),
             SizedBox(height: 20),
-            Text('Cafetín Ibero', style: TextStyle(fontSize: 24)),
+            Text('Mi Cafetín', style: TextStyle(fontSize: 24)),
+            Text('¡Bienvenido!', style: TextStyle(fontSize: 12)),
           ],
         ),
       ),

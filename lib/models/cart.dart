@@ -1,4 +1,3 @@
-
 import 'product.dart';
 
 class Cart {
@@ -14,7 +13,7 @@ class Cart {
       _products[index].quantity++;
     } else {
       // Si no existe, agregamos el producto con cantidad 1
-      product.quantity = 1;
+      product.quantity = 1; // Asegúrate de que quantity esté inicializado
       _products.add(product);
     }
   }
@@ -35,5 +34,13 @@ class Cart {
   void clear() {
     _products.clear();
   }
-}
 
+  double get totalPrice {
+    // Calcula el precio total del carrito
+    double total = 0.0;
+    for (var product in _products) {
+      total += product.price * product.quantity; // Multiplica el precio por la cantidad
+    }
+    return total;
+  }
+}

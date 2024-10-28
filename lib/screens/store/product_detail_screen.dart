@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../models/cart.dart';
 import '../../models/product.dart';
 import '../../services/my_app_state.dart'; 
+import 'package:flutter_animate/flutter_animate.dart'; // Asegúrate de que esta importación esté presente
 
 class ProductDetailScreen extends StatefulWidget {
   final Product product;
@@ -28,6 +29,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           IconButton(
             icon: Icon(
               appState.isFavorite(widget.product) ? Icons.favorite : Icons.favorite_border,
+              color: appState.isFavorite(widget.product) ? Colors.red : Colors.grey,
             ),
             onPressed: () {
               appState.toggleFavorite(widget.product);
@@ -51,13 +53,38 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Image.network(widget.product.imageUrl, height: 200, fit: BoxFit.cover),
+              // Mostrar la imagen del producto con animación
+              Hero(
+                tag: widget.product.id, // Asegúrate de que el ID del producto sea único
+                child: Image.network(
+                  widget.product.imageUrl,
+                  height: 250,
+                  fit: BoxFit.cover,
+                ).animate().fadeIn(duration: 500.ms, curve: Curves.easeInOut),
+              ),
               SizedBox(height: 16),
-              Text(widget.product.description),
+              // Mostrar el nombre del producto
+              Text(
+                widget.product.name,
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              ),
+              SizedBox(height: 8),
+              // Mostrar el precio del producto
+              Text(
+                '\$${widget.product.price.toStringAsFixed(2)}', // Asegúrate de que price sea un double
+                style: TextStyle(fontSize: 20, color: Colors.green, fontWeight: FontWeight.bold),
+              ),
+              SizedBox(height: 8),
+              // Mostrar la descripción del producto
+              Text(
+                widget.product.description,
+                style: TextStyle(fontSize: 16, color: Colors.grey[700]),
+              ),
               SizedBox(height: 16),
+              // Selector de cantidad
               Row(
                 children: [
-                  Text('Cantidad:'),
+                  Text('Cantidad:', style: TextStyle(fontSize: 18)),
                   IconButton(
                     icon: Icon(Icons.remove),
                     onPressed: () {
@@ -66,7 +93,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                       });
                     },
                   ),
-                  Text(quantity.toString()),
+                  Text(quantity.toString(), style: TextStyle(fontSize: 18)),
                   IconButton(
                     icon: Icon(Icons.add),
                     onPressed: () {
@@ -78,6 +105,13 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                 ],
               ),
               SizedBox(height: 16),
+              // Mostrar subtotal
+              Text(
+                'Subtotal: \$${(widget.product.price * quantity).toStringAsFixed(2)}',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              SizedBox(height: 16),
+              // Botón para agregar al carrito
               ElevatedButton(
                 onPressed: () {
                   for (int i = 0; i < quantity; i++) {
@@ -90,8 +124,15 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                     ),
                   );
                 },
+                style: ElevatedButton.styleFrom(
+                  padding: EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+                  textStyle: TextStyle(fontSize: 18), // Color del botón
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
                 child: Text('Agregar al carrito'),
-              ),
+              ).animate().fadeIn(duration: 500.ms, curve: Curves.easeInOut),
             ],
           ),
         ),

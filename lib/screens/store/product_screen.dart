@@ -1,22 +1,39 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../data/products.dart'; // Importa la lista de productos
 import '../../models/cart.dart';
+import '../../models/product.dart';
 import '../../services/my_app_state.dart';
+import '../../services/product_service.dart';
 import 'product_detail_screen.dart';
-import 'search_page.dart'; // Importa la página de búsqueda
-import 'package:flutter_animate/flutter_animate.dart'; // Asegúrate de que esta importación esté presente
+import 'search_page.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 
-class ProductScreen extends StatelessWidget {
+class ProductScreen extends StatefulWidget {
   final Cart cart;
 
   ProductScreen({required this.cart});
 
   @override
-  Widget build(BuildContext context) {
-    // Accede al estado de la aplicación
-    final appState = Provider.of<MyAppState>(context);
+  _ProductScreenState createState() => _ProductScreenState();
+}
 
+class _ProductScreenState extends State<ProductScreen> {
+  late Future<List<Product>> _productsFuture;
+  List<Product> _products = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadProducts();
+  }
+
+  Future<void> _loadProducts() async {
+    _products = await ProductService().fetchProducts();
+    setState(() {}); // Actualiza el estado una vez que los productos se cargan
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text('Productos'),
@@ -24,91 +41,108 @@ class ProductScreen extends StatelessWidget {
           IconButton(
             icon: Icon(Icons.search),
             onPressed: () {
-              // Navegar a la página de búsqueda y pasar la lista de productos
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => ProductSearchPage(products: products, cart: cart),
+                  builder: (context) => ProductSearchPage(cart: widget.cart),
                 ),
               );
             },
           ),
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: GridView.builder(
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2, // Número de columnas
-            childAspectRatio: 1.9 / 2, // Relación de aspecto de cada tarjeta
-            crossAxisSpacing: 12.0,
-            mainAxisSpacing: 12.0,
-          ),
-          itemCount: products.length,
-          itemBuilder: (context, index) {
-            final product = products[index];
-            final isFavorite = appState.isFavorite(product);
-
-            return GestureDetector(
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => ProductDetailScreen(product: product, cart: cart),
-                  ),
-                );
-              },
-              child: Card(
-                child: Column(
-                  children: [
-                    // Animar la imagen
-                    Expanded(
-                      child: Image.network(
-                        product.imageUrl,
-                        fit: BoxFit.cover,
-                        width: double.infinity,
-                      ).animate().fadeIn(duration: 500.ms, curve: Curves.easeInOut).slide(duration: 500.ms, curve: Curves.easeInOut),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                // Animar el nombre del producto
-                                Text(
-                                  product.name,
-                                  style: TextStyle(fontWeight: FontWeight.bold),
-                                ).animate().fadeIn(duration: 500.ms, curve: Curves.easeInOut).slide(duration: 500.ms, curve: Curves.easeInOut),
-                                // Animar el precio del producto
-                                Text(
-                                  '\$${product.price}',
-                                ).animate().fadeIn(duration: 500.ms, curve: Curves.easeInOut).slide(duration: 500.ms, curve: Curves.easeInOut),
-                              ],
-                            ),
-                          ),
-                          // Animar el icono de favorito
-                          IconButton(
-                            icon: Icon(
-                              isFavorite ? Icons.favorite : Icons.favorite_border,
-                              color: isFavorite ? Colors.red : Colors.grey,
-                            ),
-                            onPressed: () {
-                              appState.toggleFavorite(product);
-                            },
-                          ).animate().fadeIn(duration: 500.ms, curve: Curves.easeInOut).slide(duration: 500.ms, curve: Curves.easeInOut),
-                        ],
-                      ),
-                    ),
-                  ],
+      body: _products.isEmpty
+          ? Center(child: CircularProgressIndicator())
+          : Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: GridView.builder(
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  childAspectRatio: 1 / 1.5,
+                  crossAxisSpacing: 12.0,
+                  mainAxisSpacing: 12.0,
                 ),
-              ).animate().fadeIn(duration: 500.ms, curve: Curves.easeInOut).slide(duration: 500.ms, curve: Curves.easeInOut),
+                itemCount: _products.length,
+                itemBuilder: (context, index) {
+                  final product = _products[index];
+                  return ChangeNotifierProvider.value(
+                    value: context.read<MyAppState>(),
+                    child: ProductCard(product: product, cart: widget.cart),
+                  ).animate().fadeIn(duration: 300.ms, curve: Curves.easeInOut).slide(duration: 300.ms, curve: Curves.easeInOut);
+                },
+              ),
+            ),
+    );
+  }
+}
+
+class ProductCard extends StatelessWidget {
+  final Product product;
+  final Cart cart;
+
+  ProductCard({required this.product, required this.cart});
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<MyAppState>(
+      builder: (context, appState, child) {
+        final isFavorite = appState.isFavorite(product);
+
+        return GestureDetector(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => ProductDetailScreen(product: product, cart: cart),
+              ),
             );
           },
-        ),
-      ),
+          child: Card(
+            child: Column(
+              children: [
+                Expanded(
+                  child: Image.network(
+                    product.imageUrl,
+                    fit: BoxFit.cover,
+                    width: double.infinity,
+                    height: double.infinity,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Center(child: Icon(Icons.error)); // Manejar error de carga
+                    },
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        product.name,
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      Text(
+                        '\$ ${product.price.toStringAsFixed(2)}',
+                        style: TextStyle(color: Colors.green),
+                      ),
+                    ],
+                  ),
+                ),
+                IconButton(
+                  icon: Icon(
+                    isFavorite ? Icons.favorite : Icons.favorite_border,
+                    color: isFavorite ? Colors.red : Colors.grey,
+                  ),
+                  onPressed: () {
+                    appState.toggleFavorite(product);
+                  },
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }

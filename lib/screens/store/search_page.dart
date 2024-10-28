@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import '../../models/cart.dart';
 import '../../models/product.dart';
+import '../../services/product_service.dart'; // Asegúrate de importar el servicio
 import 'product_detail_screen.dart';
-import 'package:flutter_animate/flutter_animate.dart'; // Asegúrate de que esta importación esté presente
+import 'package:flutter_animate/flutter_animate.dart';
 
 class ProductSearchPage extends StatefulWidget {
-  final List<Product> products;
   final Cart cart; // Recibe el carrito como parámetro
 
-  const ProductSearchPage({super.key, required this.products, required this.cart});
+  const ProductSearchPage({super.key, required this.cart});
 
   @override
   ProductSearchPageState createState() => ProductSearchPageState();
@@ -17,20 +17,44 @@ class ProductSearchPage extends StatefulWidget {
 class ProductSearchPageState extends State<ProductSearchPage> {
   TextEditingController _searchController = TextEditingController();
   List<Product> _filteredProducts = [];
+  List<Product> _allProducts = []; // Lista para almacenar todos los productos
+  String? _selectedCategory; // Variable para almacenar la categoría seleccionada
+  List<String> _categories = []; // Lista de categorías
 
   @override
   void initState() {
     super.initState();
-    _filteredProducts = widget.products;
     _searchController.addListener(_filterProducts);
+    _fetchProducts(); // Cargar productos al iniciar
+  }
+
+  Future<void> _fetchProducts() async {
+    try {
+      List<Product> products = await ProductService().fetchProducts();
+      setState(() {
+        _allProducts = products;
+        _filteredProducts = products; // Inicialmente, todos los productos están filtrados
+        _categories = _getCategories(products); // Obtener categorías de los productos
+      });
+    } catch (e) {
+      // Manejar errores al obtener productos
+      print('Error al obtener productos: $e');
+    }
+  }
+
+  List<String> _getCategories(List<Product> products) {
+    // Obtener una lista única de categorías
+    return products.map((product) => product.category).toSet().toList();
   }
 
   void _filterProducts() {
     final query = _searchController.text.toLowerCase();
     setState(() {
-      _filteredProducts = widget.products.where((product) {
-        return product.name.toLowerCase().contains(query) ||
-               product.description.toLowerCase().contains(query);
+      _filteredProducts = _allProducts.where((product) {
+        final matchesQuery = product.name.toLowerCase().contains(query) ||
+                             product.description.toLowerCase().contains(query);
+        final matchesCategory = _selectedCategory == null || product.category == _selectedCategory;
+        return matchesQuery && matchesCategory;
       }).toList();
     });
   }
@@ -51,6 +75,25 @@ class ProductSearchPageState extends State<ProductSearchPage> {
         padding: const EdgeInsets.all(8.0),
         child: Column(
           children: [
+            // Dropdown para seleccionar categoría
+            DropdownButton<String>(
+              hint: Text('Seleccionar categoría'),
+              value: _selectedCategory,
+              onChanged: (String? newValue) {
+                setState(() {
+                  _selectedCategory = newValue;
+                  _filterProducts(); // Filtrar productos al cambiar la categoría
+                });
+              },
+              items: _categories.map<DropdownMenuItem<String>>((String category) {
+                return DropdownMenuItem<String>(
+                  value: category,
+                  child: Text(category),
+                );
+              }).toList(),
+            ),
+            SizedBox(height: 8),
+            // Campo de búsqueda
             TextField(
               controller: _searchController,
               decoration: const InputDecoration(
@@ -68,7 +111,7 @@ class ProductSearchPageState extends State<ProductSearchPage> {
                   final product = _filteredProducts[index];
 
                   return ListTile(
-                    leading: product.imageUrl != null
+                    leading: product.imageUrl.isNotEmpty
                         ? Image.network(
                             product.imageUrl,
                             width: 50,
@@ -86,7 +129,7 @@ class ProductSearchPageState extends State<ProductSearchPage> {
                               : product.description,
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
-                        ).animate().fadeIn(duration: 500.ms, curve: Curves.easeInOut).slide(duration: 500.ms, curve: Curves.easeInOut),
+                        ).animate().fadeIn(duration : 500.ms, curve: Curves.easeInOut).slide(duration: 500.ms, curve: Curves.easeInOut),
                         Text(
                           'Precio: \$${product.price}',
                           style: TextStyle(
@@ -103,7 +146,7 @@ class ProductSearchPageState extends State<ProductSearchPage> {
                           widget.cart.addProduct(product);
                         });
                         ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('${product.name} added to cart')),
+                          SnackBar(content: Text('${product.name} agregado al carrito')),
                         );
                       },
                     ).animate().fadeIn(duration: 500.ms, curve: Curves.easeInOut).slide(duration: 500.ms, curve: Curves.easeInOut),

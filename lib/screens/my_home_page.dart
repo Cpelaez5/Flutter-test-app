@@ -9,8 +9,6 @@ import 'package:flutter_application_1/screens/users/user_screen.dart';
 import 'package:flutter_application_1/screens/admin/admin_screen.dart';
 import 'package:flutter_application_1/screens/client/cart_screen.dart';
 
-import '../data/products.dart';
-
 class MyHomePage extends StatefulWidget {
   @override
   _MyHomePageState createState() => _MyHomePageState();
@@ -49,7 +47,7 @@ class _MyHomePageState extends State<MyHomePage> {
         page = FavoritesPage();
         break;
       case 2:
-        page = ProductSearchPage(products: products, cart: cart);
+        page = ProductSearchPage(cart: cart);
         break;
       case 3:
         page = UserScreen();
