@@ -6,46 +6,81 @@ import 'package:flutter_application_1/models/user_model.dart';
 class AuthService with ChangeNotifier {
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
-  // Método para crear un nuevo usuario
-  Future<User?> createUser (String name, String email, String password) async {
-    try {
-      UserCredential result = await _auth.createUserWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
-
-       await _auth.currentUser!.sendEmailVerification();
-       print("Correo de verificación enviado a ${result.user?.email}");
-
-      // Crear un nuevo UserModel
-      UserModel newUser  = UserModel(
-        uid: result.user!.uid,
-        name: name,
-        email: email,
-        role: 'cliente', // Asignar rol por defecto
-      );
-
-      // Guardar el usuario en Firestore
-      await FirebaseFirestore.instance.collection('users').doc(newUser .uid).set(newUser.toMap());
-
-      return result.user;
-    } catch (e) {
-      print('Error al crear usuario: $e');
-      return null;
-    }
+  // Método para validar el formato del correo electrónico
+  bool _isEmailValid(String email) {
+    final RegExp emailRegex = RegExp(r'^[^@]+@[^@]+\.[^@]+');
+    return emailRegex.hasMatch(email);
   }
+
+  // Método para crear un nuevo usuario
+  Future<User?> createUser  (
+  String idCard,
+  String phone,
+  String address,
+  String name,
+  String email,
+  String password,
+) async {
+  // Validar el correo electrónico
+  if (!_isEmailValid(email)) {
+    throw FirebaseAuthException(
+      code: 'invalid-email',
+      message: 'El correo electrónico está mal formado.',
+    );
+  }
+
+  print("Correo electrónico ingresado: ${email.trim()}");
+
+  try {
+    UserCredential result = await _auth.createUserWithEmailAndPassword(
+      email: email.trim(), // Asegúrate de usar trim() para eliminar espacios
+      password: password,
+    );
+
+    // Enviar correo de verificación
+    await result.user?.sendEmailVerification();
+    print("Correo de verificación enviado a ${result.user?.email}");
+
+    // Crear un nuevo UserModel
+    UserModel newUser   = UserModel(
+      uid: result.user!.uid,
+      idCard: idCard,
+      name: name,
+      phone: phone,
+      address: address,
+      email: email,
+      role: 'cliente', // Asignar rol por defecto
+    );
+
+    // Guardar el usuario en Firestore
+    await FirebaseFirestore.instance.collection('users').doc(newUser .uid).set(newUser .toMap());
+
+    return result.user;
+  } catch (e) {
+    print('Error al crear usuario: $e');
+    rethrow; // Lanza la excepción para manejarla en el UI
+  }
+}
 
   // Método para iniciar sesión
   Future<User?> signIn(String email, String password) async {
+    // Validar el correo electrónico
+    if (!_isEmailValid(email)) {
+      throw FirebaseAuthException(
+        code: 'invalid-email',
+        message: 'El correo electrónico está mal formado.',
+      );
+    }
+
     try {
       UserCredential result = await _auth.signInWithEmailAndPassword(
-        email: email,
+        email: email.trim(), // Asegúrate de usar trim() para eliminar espacios
         password: password,
       );
       return result.user;
     } catch (e) {
       print('Error al iniciar sesión: $e');
-      return null;
+      rethrow; // Lanza la excepción para manejarla en el UI
     }
   }
 

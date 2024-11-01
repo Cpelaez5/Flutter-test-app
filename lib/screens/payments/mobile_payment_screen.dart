@@ -2,10 +2,11 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:uuid/uuid.dart';
+
 import '../../data/payment_data.dart';
 import '../../utils/currency_input_formatter.dart';
 import '../../utils/text_input_formatter.dart';
+import 'payment_success.dart';
 
 class MobilePaymentScreen extends StatefulWidget {
   final double totalAmount;
@@ -29,7 +30,6 @@ class _MobilePaymentScreenState extends State<MobilePaymentScreen> {
   String? paymentDate;
   String? paymentAmount;
   bool isCaptureUploaded = false;
-  final Uuid _uuid = Uuid();
 
   @override
   Widget build(BuildContext context) {
@@ -266,35 +266,40 @@ class _MobilePaymentScreenState extends State<MobilePaymentScreen> {
       Map<String, dynamic> paymentData = {
         'referenceNumber': referenceNumber,
         'phoneNumber': '$selectedPhonePrefix-$phoneNumber',
-        'paymentDate': paymentDate, // Asegúrate de que esta variable esté definida
+        'paymentDate': paymentDate,
         'selectedBank': selectedBank,
         'paymentAmount': paymentAmount,
         'paymentStatus': 'pending',
         'paymentMethod': 'pago_movil',
         'isCaptureUploaded': isCaptureUploaded,
-        'timestamp': FieldValue.serverTimestamp(), // Para registrar la fecha y hora
-        'uid': FirebaseAuth.instance.currentUser!.uid, // Almacenar el uid del usuario
-        'token': _uuid.v4(), // Generar un token único para el pedido
+        'timestamp': FieldValue.serverTimestamp(),
+        'uid': FirebaseAuth.instance.currentUser !.uid,
+        'token': null,
       };
 
       // Solo agregar la lista de productos si no está vacía
       if (widget.products.isNotEmpty) {
-        // Transformar la lista de productos para que contenga solo el ID y la cantidad
         List<Map<String, dynamic>> productList = widget.products.map((product) {
           return {
-            'productId': product['id'], // Asegúrate de que 'id' sea la clave correcta
-            'quantity': product['quantity'], // Asegúrate de que 'quantity' sea la clave correcta
+            'productId': product['id'],
+            'quantity': product['quantity'],
             'price': product['price'],
           };
         }).toList();
 
-        paymentData['products'] = productList; // Agregar la lista de productos al mapa
+        paymentData['products'] = productList;
       }
 
       // Guardar en Firestore
       try {
-        await FirebaseFirestore.instance.collection('payments').add (paymentData);
-        Navigator.pop(context); // Regresar a la pantalla anterior
+        await FirebaseFirestore.instance.collection('payments').add(paymentData);
+        
+        // Redirigir a la pantalla de éxito del pago
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => PaymentSuccessScreen()),
+        );
+
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Pago Móvil registrado con éxito!')),
         );

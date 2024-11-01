@@ -39,13 +39,13 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
       final data = doc.data();
       if (data != null) {
         _nameController.text = data['name'] ?? '';
-        _idController.text = data['Cédula'] ?? '';
-        _phoneController.text = data['Teléfono'] ?? '';
+        _idController.text = data['idCard'] ?? '';
+        _phoneController.text = data['phone'] ?? '';
         _emailController.text = data['email'] ?? '';
         _originalData = {
           'name': _nameController.text,
-          'Cédula': _idController.text,
-          'Teléfono': _phoneController.text,
+          'idCard': _idController.text,
+          'phone': _phoneController.text,
           'email': _emailController.text,
         };
         print('Datos cargados: $_originalData'); // Verificar que los datos se carguen correctamente
@@ -77,8 +77,8 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     }
 
     if (_nameController.text == _originalData['name'] &&
-        _idController.text == _originalData['Cédula'] &&
-        _phoneController.text == _originalData['Teléfono'] &&
+        _idController.text == _originalData['idCard'] &&
+        _phoneController.text == _originalData['phone'] &&
         _emailController.text == _originalData['email']) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('No hay cambios para actualizar')),
@@ -109,8 +109,8 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
 
       await FirebaseFirestore.instance.collection('users').doc(user.uid).update({
         'name': _nameController.text,
-        'Cédula': _idController.text,
-        'Teléfono': _phoneController.text,
+        'idCard': _idController.text,
+        'phone': _phoneController.text,
         'email': _emailController.text,
       });
 
@@ -235,8 +235,8 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                 child: Column(
                   children: [
                     _buildTextField(_nameController, 'Nombre completo', TextInputType.name),
-                    _buildTextField(_idController, 'Cédula', TextInputType.number, [FilteringTextInputFormatter.digitsOnly]),
-                    _buildTextField(_phoneController, 'Teléfono', TextInputType.phone),
+                    _buildTextField(_idController, 'idCard', TextInputType.number, [FilteringTextInputFormatter.digitsOnly]),
+                    _buildTextField(_phoneController, 'phone', TextInputType.phone),
                     _buildTextField(_emailController, 'Correo electrónico', TextInputType.emailAddress),
                   ],
                 ),

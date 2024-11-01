@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/models/cart.dart';
-import 'package:flutter_application_1/services/auth_service.dart';
-import 'package:flutter_application_1/widgets/navigation_rail.dart';
+import 'package:flutter_application_1/services/auth/auth_service.dart';
 import 'package:flutter_application_1/screens/store/product_screen.dart';
 import 'package:flutter_application_1/screens/client/favorites_page.dart';
 import 'package:flutter_application_1/screens/store/search_page.dart';
@@ -16,13 +15,13 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   var selectedIndex = 0;
-  final Cart cart = Cart(); // Instancia persistente del carrito
-  String? userRole; // Variable para almacenar el rol del usuario
+  final Cart cart = Cart();
+  String? userRole;
 
   @override
   void initState() {
     super.initState();
-    _getUserRole(); // Llamar al método para obtener el rol del usuario
+    _getUserRole();
   }
 
   Future<void> _getUserRole() async {
@@ -30,58 +29,80 @@ class _MyHomePageState extends State<MyHomePage> {
     final user = authService.currentUser ;
     if (user != null) {
       userRole = await authService.getRole(user.uid);
-      if (mounted) { // Verifica si el widget sigue montado
-        setState(() {}); // Actualizar el estado para reflejar el rol
+      if (mounted) {
+        setState(() {});
       }
+    }
+  }
+
+  Widget _getPage() {
+    switch (selectedIndex) {
+      case 0:
+        return ProductScreen(cart: cart);
+      case 1:
+        return FavoritesPage();
+      case 2:
+        return ProductSearchPage(cart: cart);
+      case 3:
+        return UserScreen();
+      case 4:
+        return userRole == 'cliente' ? CartScreen(cart: cart) : AdminScreen();
+      default:
+        throw UnimplementedError('No widget for $selectedIndex');
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    Widget page;
-    switch (selectedIndex) {
-      case 0:
-        page = ProductScreen(cart: cart); // Usar el carrito compartido
-        break;
-      case 1:
-        page = FavoritesPage();
-        break;
-      case 2:
-        page = ProductSearchPage(cart: cart);
-        break;
-      case 3:
-        page = UserScreen();
-        break;
-      case 4:
-        if (userRole == 'cliente') { // Mostrar solo si el rol es administrador
-          page = CartScreen(cart: cart); // Usar el carrito compartido
-        } else {
-          page = AdminScreen();
-        }
-        break;
-      default:
-        throw UnimplementedError('no widget for $selectedIndex');
-    }
-
     return Scaffold(
-      body: Row(
-        children: [
-          CustomNavigationRail(
-            selectedIndex: selectedIndex,
-            onDestinationSelected: (value) {
-              setState(() {
-                selectedIndex = value;
-              });
-            },
-            userRole: userRole,
-          ),
-          Expanded(
-            child: Container(
-              color: Theme.of(context).colorScheme.primaryContainer,
-              child: page,
+      body: Container(
+        color: Colors.grey[200], // Color de fondo gris
+        child: Column(
+          children: [
+            Expanded(
+              child: _getPage(),
             ),
-          ),
-        ],
+            BottomNavigationBar(
+              currentIndex: selectedIndex,
+              onTap: (value) {
+                setState(() {
+                  selectedIndex = value;
+                });
+              },
+              items: [
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.storefront_rounded),
+                  label: 'Productos',
+                ),
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.favorite),
+                  label: 'Favoritos',
+                ),
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.search),
+                  label: 'Buscar',
+                ),
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.person),
+                  label: 'Usuario',
+                ),
+                if (userRole == 'cliente') // Mostrar solo si el rol es cliente
+                  BottomNavigationBarItem(
+                    icon: Icon(Icons.shopping_cart),
+                    label: 'Carrito',
+                  ),
+                if (userRole == 'administrador') // Mostrar solo si el rol es administrador
+                  BottomNavigationBarItem(
+                    icon: Icon(Icons.admin_panel_settings),
+                    label: 'Administración',
+                  ),
+              ],
+              backgroundColor: Theme.of(context).colorScheme.primary, // Color de fondo de la barra
+              selectedItemColor: Colors.brown, // Color del ítem seleccionado
+              unselectedItemColor: Colors.brown, // Color del ítem no seleccionado
+            ),
+          ],
+        ),
       ),
     );
   }

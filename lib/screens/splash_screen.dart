@@ -10,10 +10,10 @@ class SplashScreen extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.coffee, size: 100, color: Colors.brown),
+            Icon(Icons.storefront, size: 100, color: Colors.brown),
             SizedBox(height: 20),
-            Text('Mi Cafetín', style: TextStyle(fontSize: 24)),
-            Text('¡Bienvenido!', style: TextStyle(fontSize: 12)),
+            Text('Mi Cantina', style: TextStyle(fontSize: 24)),
+            Text('¡Bienvenido!', style: TextStyle(fontSize: 16)),
           ],
         ),
       ),

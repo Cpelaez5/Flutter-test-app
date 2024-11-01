@@ -37,6 +37,7 @@ class _CartScreenState extends State<CartScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         title: Text('Carrito'),
       ),
       body: widget.cart.products.isEmpty

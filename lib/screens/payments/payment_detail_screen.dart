@@ -3,8 +3,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_application_1/models/product.dart';
 import '../../models/order_model.dart';
-import '../../services/get_user_role.dart';
-import '../../services/update_payment_status.dart';
+import '../../services/users/get_user_role.dart';
+import '../../services/payments/update_payment_status.dart';
 import 'package:collection/collection.dart'; // Importar la biblioteca collection
 
 class PaymentDetailScreen extends StatefulWidget {
@@ -153,7 +153,7 @@ class _PaymentDetailScreenState extends State<PaymentDetailScreen> {
             Text('Monto: ${payment.paymentAmount} Bs.'),
             Text('Estado: ${ payment.paymentStatus}'),
             Text('Banco: ${payment.selectedBank}'),
-            Text('Usuario: ${payment.uid}'),
+            Text('Usuario: ${payment.id}'),
             Text('Registrado: ${paymentDateTime.day}/${paymentDateTime.month}/${paymentDateTime.year} ${paymentDateTime.hour}:${paymentDateTime.minute}'),
             if (payment.paymentMethod == 'pago_movil')
               Text('Teléfono: ${payment.phoneNumber}'),

@@ -7,6 +7,7 @@ import '../../services/product_service.dart';
 import 'product_detail_screen.dart';
 import 'search_page.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:cached_network_image/cached_network_image.dart'; // Asegúrate de agregar este paquete en pubspec.yaml
 
 class ProductScreen extends StatefulWidget {
   final Cart cart;
@@ -19,23 +20,28 @@ class ProductScreen extends StatefulWidget {
 
 class _ProductScreenState extends State<ProductScreen> {
   late Future<List<Product>> _productsFuture;
-  List<Product> _products = [];
 
   @override
   void initState() {
     super.initState();
-    _loadProducts();
+    _productsFuture = _loadProducts();
   }
 
-  Future<void> _loadProducts() async {
-    _products = await ProductService().fetchProducts();
-    setState(() {}); // Actualiza el estado una vez que los productos se cargan
+  Future<List<Product>> _loadProducts() async {
+    try {
+      return await ProductService().fetchProducts();
+    } catch (e) {
+      // Manejo de errores
+      print('Error al cargar productos: $e');
+      return []; // Retorna una lista vacía en caso de error
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         title: Text('Productos'),
         actions: [
           IconButton(
@@ -51,27 +57,40 @@ class _ProductScreenState extends State<ProductScreen> {
           ),
         ],
       ),
-      body: _products.isEmpty
-          ? Center(child: CircularProgressIndicator())
-          : Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: GridView.builder(
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  childAspectRatio: 1 / 1.5,
-                  crossAxisSpacing: 12.0,
-                  mainAxisSpacing: 12.0,
-                ),
-                itemCount: _products.length,
-                itemBuilder: (context, index) {
-                  final product = _products[index];
-                  return ChangeNotifierProvider.value(
-                    value: context.read<MyAppState>(),
-                    child: ProductCard(product: product, cart: widget.cart),
-                  ).animate().fadeIn(duration: 300.ms, curve: Curves.easeInOut).slide(duration: 300.ms, curve: Curves.easeInOut);
-                },
+      body: FutureBuilder<List<Product>>(
+        future: _productsFuture,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(child: CircularProgressIndicator());
+          } else if (snapshot.hasError) {
+            return Center(child: Text('Error al cargar productos'));
+          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+            return Center(child: Text('No hay productos disponibles'));
+          }
+
+          final products = snapshot.data!;
+
+          return Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: GridView.builder(
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                childAspectRatio: 1 / 1.5,
+                crossAxisSpacing: 12.0,
+                mainAxisSpacing: 12.0,
               ),
+              itemCount: products.length,
+              itemBuilder: (context, index) {
+                final product = products[index];
+                return ChangeNotifierProvider.value(
+                  value: context.read<MyAppState>(),
+                  child: ProductCard(product: product, cart: widget.cart),
+                ).animate().fadeIn(duration: 300.ms, curve: Curves.easeInOut).slide(duration: 300.ms, curve: Curves.easeInOut);
+              },
             ),
+          );
+        },
+      ),
     );
   }
 }
@@ -101,14 +120,13 @@ class ProductCard extends StatelessWidget {
             child: Column(
               children: [
                 Expanded(
-                  child: Image.network(
-                    product.imageUrl,
+                  child: CachedNetworkImage(
+                    imageUrl: product.imageUrl,
                     fit: BoxFit.cover,
                     width: double.infinity,
                     height: double.infinity,
-                    errorBuilder: (context, error, stackTrace) {
-                      return Center(child: Icon(Icons.error)); // Manejar error de carga
-                    },
+                    errorWidget: (context, url, error) => Center(child: Icon(Icons.error)), // Manejar error de carga
+                    placeholder: (context, url) => Center(child: CircularProgressIndicator()), // Indicador de carga
                   ),
                 ),
                 Padding(

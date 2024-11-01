@@ -69,6 +69,7 @@ class ProductSearchPageState extends State<ProductSearchPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         title: const Text('Buscar producto'),
       ),
       body: Padding(
