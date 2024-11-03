@@ -46,7 +46,7 @@ class MyAppState extends ChangeNotifier {
 
   Future<void> loadProducts() async {
     final snapshot = await FirebaseFirestore.instance.collection('products').get();
-    allProducts = snapshot.docs.map((doc) => Product.fromMap(doc.data() as Map<String, dynamic>, doc.id)).toList();
+    allProducts = snapshot.docs.map((doc) => Product.fromMap(doc.data(), doc.id)).toList();
     
     // Cargar favoritos después de cargar todos los productos
     await loadFavorites();

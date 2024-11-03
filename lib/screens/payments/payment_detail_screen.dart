@@ -46,7 +46,7 @@ class _PaymentDetailScreenState extends State<PaymentDetailScreen> {
 
   Future<void> _loadProducts() async {
     final snapshot = await FirebaseFirestore.instance.collection('products').get();
-    allProducts = snapshot.docs.map((doc) => Product.fromMap(doc.data() as Map<String, dynamic>, doc.id)).toList();
+    allProducts = snapshot.docs.map((doc) => Product.fromMap(doc.data(), doc.id)).toList();
     
     // Imprimir los IDs de los productos cargados
     print("Productos cargados:");
@@ -231,7 +231,7 @@ class _PaymentDetailScreenState extends State<PaymentDetailScreen> {
               title: Text('Error al procesar producto'),
             );
           }
-        }).toList(),
+        }),
         // Mostrar el total
         Card(
           margin: const EdgeInsets.symmetric(vertical: 8),

@@ -6,11 +6,11 @@ class CustomNavigationRail extends StatelessWidget {
   final String? userRole;
 
   const CustomNavigationRail({
-    Key? key,
+    super.key,
     required this.selectedIndex,
     required this.onDestinationSelected,
     this.userRole,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

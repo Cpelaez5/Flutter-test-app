@@ -7,10 +7,10 @@ class PaymentCard extends StatelessWidget {
   final Function onTap;
 
   const PaymentCard({
-    Key? key,
+    super.key,
     required this.payment,
     required this.onTap,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

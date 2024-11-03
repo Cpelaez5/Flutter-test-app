@@ -35,7 +35,7 @@ class AuthService with ChangeNotifier {
     }
   } catch (error) {
     print('Error en create:User  $error');
-    throw error; // Lanza la excepción para manejarla en la UI
+    rethrow; // Lanza la excepción para manejarla en la UI
   }
   return null;
 }

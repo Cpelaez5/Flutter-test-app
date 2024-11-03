@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../../services/auth/auth_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -105,7 +106,13 @@ class _AuthScreenState extends State<AuthScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return PopScope(
+      canPop:false,
+      onPopInvokedWithResult:(didPop, result) => {
+        SystemNavigator.pop(),
+        false
+      },
+    child: Scaffold(
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
@@ -203,6 +210,8 @@ class _AuthScreenState extends State<AuthScreen> {
           ),
         ),
       ),
+    ),
     );
+
   }
 } 

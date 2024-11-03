@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/services.dart';
+import '../splash_screen.dart';
 
 class UserProfileScreen extends StatefulWidget {
   @override
@@ -198,8 +199,11 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     // Realiza el cierre de sesión
     await FirebaseAuth.instance.signOut();
 
-    // Navega a la pantalla de inicio de sesión
-    Navigator.of(context).pushReplacementNamed('/login');
+    // Navega a la pantalla de inicio de sesión y elimina todas las rutas anteriores
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (context) => SplashScreenWrapper()),
+      (Route<dynamic> route) => false, // Elimina todas las rutas
+    );
   } catch (e) {
     print('Error al cerrar sesión: $e');
     ScaffoldMessenger.of(context).showSnackBar(

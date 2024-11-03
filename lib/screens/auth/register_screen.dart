@@ -76,7 +76,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       'email': email,
       'phone': phone,
       'address': address,
-      'role': 'user', // Agregar el campo "role"
+      'role': 'cliente', // cliente por defecto
     });
   }
 
@@ -131,7 +131,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: [Colors.brown[300]             ?? Colors.brown, Colors.brown[100] ?? Colors.brown],
+            colors: [Colors.brown[300] ?? Colors.brown, Colors.brown[100] ?? Colors.brown],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),

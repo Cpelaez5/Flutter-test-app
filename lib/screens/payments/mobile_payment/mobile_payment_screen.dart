@@ -2,21 +2,20 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-
-import '../../data/payment_data.dart';
-import '../../utils/currency_input_formatter.dart';
-import '../../utils/text_input_formatter.dart';
-import 'payment_success.dart';
+import '../../../data/payment_data.dart';
+import '../../../utils/currency_input_formatter.dart';
+import '../../../utils/text_input_formatter.dart';
+import '../payment_success.dart';
 
 class MobilePaymentScreen extends StatefulWidget {
   final double totalAmount;
   final List<Map<String, dynamic>> products;
 
   const MobilePaymentScreen({
-    Key? key,
+    super.key,
     required this.totalAmount,
     required this.products,
-  }) : super(key: key);
+  });
 
   @override
   _MobilePaymentScreenState createState() => _MobilePaymentScreenState();

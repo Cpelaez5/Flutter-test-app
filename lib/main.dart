@@ -11,10 +11,14 @@ import 'screens/users/user_profile_screen.dart';
 import 'screens/admin/admin_screen.dart';
 import 'screens/admin/admin_order_screen.dart';
 import 'package:timeago/timeago.dart' as timeago;
+import 'package:intl/intl.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   timeago.setLocaleMessages('es', timeago.EsMessages());
+  Intl.defaultLocale = 'es_ES';
+  await  initializeDateFormatting();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   runApp(MyApp());
 }
@@ -33,7 +37,7 @@ class MyApp extends StatelessWidget {
           useMaterial3: true,
           colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepOrange),
         ),
-        home: SplashScreenWrapper(), // Cambia esto para usar SplashScreenWrapper
+        home: SplashScreenWrapper(),
         routes: {
           '/home': (context) => MyHomePage(),
           '/admin': (context) => AdminScreen(),

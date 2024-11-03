@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../models/order_model.dart';
 import '../../widgets/payment_card.dart';
+import '../client/payment_screen.dart';
 import '../payments/payment_detail_screen.dart'; // Importa el nuevo widget
 
 class UserOrdersScreen extends StatelessWidget {
@@ -38,11 +39,29 @@ class UserOrdersScreen extends StatelessWidget {
           return _buildOrdersList(orders, context);
         },
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {},
-        child: const Icon(Icons.add),
-      ),
-    );
+      floatingActionButton: ElevatedButton(
+          onPressed: () {
+            Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => PaymentScreen(
+                totalAmount: 0.0,
+                products: [], // Pasar la lista de productos
+              ),
+            ),
+          );
+            print('Botón presionado');
+          },
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.add), // Ícono
+              const SizedBox(width: 8), // Espacio entre el ícono y el texto
+              const Text('Registrar Pago'), // Texto
+            ],
+          ),
+        ),
+      );
   }
 
   List<Payment> _getOrdersFromSnapshot(AsyncSnapshot<QuerySnapshot> snapshot) {
