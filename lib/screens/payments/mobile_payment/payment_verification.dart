@@ -1,12 +1,12 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart'; // Asegúrate de tener esta dependencia en tu pubspec.yaml
-import '../../../data/payment_data.dart';
 import 'bank_selection.dart';
 import 'confirm_amount.dart';
+import 'payment_confirmation.dart';
 import 'payment_date.dart';
 import 'phone_verification.dart';
-import 'reference_number.dart'; // Asegúrate de importar tu archivo de datos
+import 'reference_number.dart'; // Asegúrate de importar la nueva pantalla
 
 class PaymentVerificationScreen extends StatefulWidget {
   final String confirmedPhone;
@@ -18,7 +18,7 @@ class PaymentVerificationScreen extends StatefulWidget {
   final double enteredAmount;
 
   const PaymentVerificationScreen({
-    Key? key,
+    super.key,
     required this.confirmedPhone,
     required this.totalAmount,
     required this.products,
@@ -26,7 +26,7 @@ class PaymentVerificationScreen extends StatefulWidget {
     required this.selectedBank,
     required this.selectedDate,
     required this.enteredAmount,
-  }) : super(key: key);
+  });
 
   @override
   _PaymentVerificationScreenState createState() => _PaymentVerificationScreenState();
@@ -43,7 +43,7 @@ class _PaymentVerificationScreenState extends State<PaymentVerificationScreen> {
   void initState() {
     super.initState();
     confirmedPhone = widget.confirmedPhone; 
-    selectedDate = widget.selectedDate; // Inicializa el número de teléfono
+    selectedDate = widget.selectedDate;
     selectedBank = widget.selectedBank;
     enteredAmount = widget.enteredAmount;
     referenceNumber = widget.referenceNumber;
@@ -81,10 +81,8 @@ class _PaymentVerificationScreenState extends State<PaymentVerificationScreen> {
             Center(
               child: ElevatedButton(
                 onPressed: () {
-                  // Aquí puedes agregar la lógica para confirmar el pago
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Pago confirmado!')),
-                  );
+                  // Mostrar diálogo de confirmación
+                  _showConfirmationDialog();
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.black, // Color oscuro
@@ -97,6 +95,48 @@ class _PaymentVerificationScreenState extends State<PaymentVerificationScreen> {
           ],
         ),
       ),
+    );
+  }
+
+  void _showConfirmationDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Confirmar Pago'),
+          content: const Text('¿Estás seguro de que los datos proporcionados son correctos?'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Cerrar el diálogo
+              },
+              child: const Text('Cancelar'),
+            ),
+            TextButton(
+              onPressed: () {
+                // Navegar a la pantalla de confirmación de pago y borrar el historial
+                Navigator.of(context).pop(); // Cerrar el diálogo
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => PaymentConfirmationScreen(
+                      confirmedPhone: confirmedPhone,
+                      selectedDate: selectedDate,
+                      selectedBank: selectedBank,
+                      enteredAmount: enteredAmount,
+                      referenceNumber: referenceNumber,
+                      totalAmount: widget.totalAmount,
+                      products: widget.products,
+                    ),
+                  ),
+                  (Route<dynamic> route) => false, // Borrar el historial
+                );
+              },
+              child: const Text('Confirmar'),
+            ),
+                    ],
+        );
+      },
     );
   }
 
@@ -126,37 +166,44 @@ class _PaymentVerificationScreenState extends State<PaymentVerificationScreen> {
     );
   }
 
-  Widget _buildDataRow(String title, String value, BuildContext context, String field) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Column(
+ Widget _buildDataRow(String title, String value, BuildContext context, String field) {
+  return Row(
+    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    children: [
+      Expanded( // Usar Expanded para que el texto ocupe el espacio disponible
+        child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(title, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.grey)),
             const SizedBox(height: 8),
-                        Text(value, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            Text(
+              value,
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              overflow: TextOverflow.ellipsis, // Agregar esto para truncar el texto si es demasiado largo
+              maxLines: 1, // Limitar a una línea
+            ),
           ],
         ),
-        IconButton(
-          icon: const Icon(Icons.edit),
-          onPressed: () {
-            // Navegar a la pantalla de edición correspondiente
-            _navigateToEditScreen(context, field, value, 'edit');
-          },
-        ),
-      ],
-    );
-  }
+      ),
+      IconButton(
+        icon: const Icon(Icons.edit),
+        onPressed: () {
+          // Navegar a la pantalla de edición correspondiente
+          _navigateToEditScreen(context, field, value, 'edit');
+        },
+      ),
+    ],
+  );
+}
 
   void _navigateToEditScreen(BuildContext context, String field, String currentValue, String action) {
     Widget editScreen;
-    
+
     switch (field) {
       case 'phone':
         String userId = FirebaseAuth.instance.currentUser ?.uid ?? '';
         editScreen = PhoneVerificationScreen(
-          userId: userId, // Aquí debes pasar el ID del usuario correspondiente
+          userId: userId,
           totalAmount: widget.totalAmount,
           products: widget.products,
           action: action,
@@ -164,13 +211,13 @@ class _PaymentVerificationScreenState extends State<PaymentVerificationScreen> {
         break;
       case 'date':
         editScreen = PaymentDateScreen(
-            confirmedPhone: widget.confirmedPhone,
-            totalAmount: widget.totalAmount,
-            products: widget.products,
-            referenceNumber: widget.referenceNumber,
-            selectedBank: widget.selectedBank,
-            action: action,
-    );
+          confirmedPhone: widget.confirmedPhone,
+          totalAmount: widget.totalAmount,
+          products: widget.products,
+          referenceNumber: widget.referenceNumber,
+          selectedBank: widget.selectedBank,
+          action: action,
+        );
         break;
       case 'bank':
         editScreen = BankSelectionScreen(
@@ -179,8 +226,8 @@ class _PaymentVerificationScreenState extends State<PaymentVerificationScreen> {
           products: widget.products,
           referenceNumber: widget.referenceNumber,
           action: action,
-      );
-      break;
+        );
+        break;
       case 'amount':
         editScreen = ConfirmAmountScreen(
           confirmedPhone: widget.confirmedPhone,
@@ -222,7 +269,7 @@ class _PaymentVerificationScreenState extends State<PaymentVerificationScreen> {
                 SnackBar(content: Text('Fecha actualizada a: ${formatDate(selectedDate)}')),
               );
               break;
-              case 'bank':
+            case 'bank':
               selectedBank = newValue; // Actualiza el banco
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(content: Text('Banco actualizado a: $newValue')),
@@ -230,7 +277,7 @@ class _PaymentVerificationScreenState extends State<PaymentVerificationScreen> {
               break;
             case 'amount':
               enteredAmount = newValue; // Actualiza el monto
-              ScaffoldMessenger.of(context).showSnackBar(
+                            ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(content: Text('Monto actualizado a: $newValue')),
               );
               break;
@@ -247,4 +294,9 @@ class _PaymentVerificationScreenState extends State<PaymentVerificationScreen> {
       }
     });
   }
+
+  String formatDate(DateTime date) {
+    return DateFormat('dd/MM/yyyy').format(date);
+  }
 }
+       

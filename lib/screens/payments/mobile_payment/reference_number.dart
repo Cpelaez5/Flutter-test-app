@@ -10,12 +10,12 @@ class ReferenceNumberScreen extends StatefulWidget {
   final String? action;
 
   const ReferenceNumberScreen({
-    Key? key,
+    super.key,
     required this.confirmedPhone,
     required this.totalAmount,
     required this.products,
     this.action,
-  }) : super(key: key);
+  });
 
   @override
   State<ReferenceNumberScreen> createState() => _ReferenceNumberScreenState();
@@ -24,7 +24,7 @@ class ReferenceNumberScreen extends StatefulWidget {
 class _ReferenceNumberScreenState extends State<ReferenceNumberScreen> {
   @override
   Widget build(BuildContext context) {
-    final TextEditingController _referenceController = TextEditingController();
+    final TextEditingController referenceController = TextEditingController();
 
     return Scaffold(
       appBar: AppBar(
@@ -62,7 +62,7 @@ class _ReferenceNumberScreenState extends State<ReferenceNumberScreen> {
               children: [
                 Expanded(
                   child: TextField(
-                    controller: _referenceController,
+                    controller: referenceController,
                     decoration: const InputDecoration(
                       labelText: 'Número de referencia',
                       border: OutlineInputBorder(),
@@ -76,7 +76,7 @@ class _ReferenceNumberScreenState extends State<ReferenceNumberScreen> {
                     // Pegar el número de referencia desde el portapapeles
                     final data = await Clipboard.getData(Clipboard.kTextPlain);
                     if (data != null) {
-                      _referenceController.text = data.text ?? '';
+                      referenceController.text = data.text ?? '';
                     }
                   },
                 ),
@@ -91,7 +91,7 @@ class _ReferenceNumberScreenState extends State<ReferenceNumberScreen> {
             ElevatedButton(
               onPressed: () {
                 if(widget.action == 'edit'){
-                    return Navigator.of(context).pop(_referenceController.text);
+                    return Navigator.of(context).pop(referenceController.text);
                   }
                 // Navegar a la siguiente pantalla pasando los datos necesarios
                 Navigator.push(
@@ -101,7 +101,7 @@ class _ReferenceNumberScreenState extends State<ReferenceNumberScreen> {
                       confirmedPhone: widget.confirmedPhone,
                       totalAmount: widget.totalAmount,
                       products: widget.products,
-                      referenceNumber: _referenceController.text,
+                      referenceNumber: referenceController.text,
                     ),
                   ),
                 );

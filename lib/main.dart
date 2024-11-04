@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_application_1/preferences/pref_usuarios.dart';
 import 'package:flutter_application_1/screens/splash_screen.dart'; // Mantén la pantalla de splash
 import 'package:flutter_application_1/services/auth/auth_service.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'screens/my_home_page.dart';
 import 'screens/not_found_screen.dart';
+import 'services/bloc/notifications_bloc.dart';
 import 'services/my_app_state.dart';
 import 'screens/users/user_profile_screen.dart';
 import 'screens/admin/admin_screen.dart';
@@ -16,11 +19,19 @@ import 'package:intl/date_symbol_data_local.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
   timeago.setLocaleMessages('es', timeago.EsMessages());
   Intl.defaultLocale = 'es_ES';
+  await PreferenciasUsuario.init();
   await  initializeDateFormatting();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  runApp(MyApp());
+  runApp(
+    MultiBlocProvider(providers: [
+    BlocProvider(create: (context) => NotificationsBloc()),
+    ], 
+    child: MyApp(),
+    )
+  );
 }
 
 class MyApp extends StatelessWidget {

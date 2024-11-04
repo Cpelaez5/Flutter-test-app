@@ -12,7 +12,7 @@ class ConfirmAmountScreen extends StatefulWidget {
   final String? action;
 
   const ConfirmAmountScreen({
-    Key? key,
+    super.key,
     required this.confirmedPhone,
     required this.totalAmount,
     required this.products,
@@ -20,7 +20,7 @@ class ConfirmAmountScreen extends StatefulWidget {
     required this.selectedBank,
     required this.selectedDate,
     this.action
-  }) : super(key: key);
+  });
 
   @override
   _ConfirmAmountScreenState createState() => _ConfirmAmountScreenState();

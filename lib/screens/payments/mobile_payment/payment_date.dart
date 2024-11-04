@@ -11,14 +11,14 @@ class PaymentDateScreen extends StatefulWidget {
   final String? action;
   
   const PaymentDateScreen({
-    Key? key,
+    super.key,
     required this.confirmedPhone,
     required this.totalAmount,
     required this.products,
     required this.referenceNumber,
     required this.selectedBank,
     this.action,
-  }) : super(key: key);
+  });
 
   @override
   

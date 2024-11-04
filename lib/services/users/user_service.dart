@@ -9,6 +9,6 @@ class UserService {
     }
 
     DocumentSnapshot userDoc = await _firestore.collection('users').doc(uid).get();
-    return userDoc.exists ? userDoc['Cédula'] : null; // Retorna la cédula o null si no existe
+    return userDoc.exists ? userDoc['IdCard'] : null; // Retorna la cédula o null si no existe
   }
 }

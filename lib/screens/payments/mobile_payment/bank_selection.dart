@@ -10,13 +10,13 @@ class BankSelectionScreen extends StatefulWidget {
   final String? action;
 
   const BankSelectionScreen({
-    Key? key,
+    super.key,
     required this.confirmedPhone,
     required this.totalAmount,
     required this.products,
     required this.referenceNumber,
     this.action
-  }) : super(key: key);
+  });
 
   @override
   _BankSelectionScreenState createState() => _BankSelectionScreenState();
