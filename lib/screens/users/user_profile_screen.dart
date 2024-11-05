@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/services.dart';
-import '../splash_screen.dart';
+import '../../services/bloc/notifications_bloc.dart';
+import '../splash_screen.dart'; // Asegúrate de importar tu NotificationsBloc
 
 class UserProfileScreen extends StatefulWidget {
   @override
@@ -16,6 +17,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   final _emailController = TextEditingController();
   bool _isLoading = false;
   Map<String, String> _originalData = {};
+  final NotificationsBloc notificationsBloc = NotificationsBloc(); // Instancia del NotificationsBloc
 
   @override
   void initState() {
@@ -25,50 +27,50 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
 
   Future<void> _loadUserData() async {
     final user = FirebaseAuth.instance.currentUser ;
-  if (user == null) {
-    print('Usuario no autenticado');
-    return;
-  }
+    if (user == null) {
+      print('Usuario no autenticado');
+      return;
+    }
 
-  setState(() {
-    _isLoading = true;
-  });
+    setState(() {
+      _isLoading = true;
+    });
 
-  try {
-    final doc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
-    if (doc.exists) {
-      final data = doc.data();
-      if (data != null) {
-        _nameController.text = data['name'] ?? '';
-        _idController.text = data['idCard'] ?? '';
-        _phoneController.text = data['phone'] ?? '';
-        _emailController.text = data['email'] ?? '';
-        _originalData = {
-          'name': _nameController.text,
-          'idCard': _idController.text,
-          'phone': _phoneController.text,
-          'email': _emailController.text,
-        };
-        print('Datos cargados: $_originalData'); // Verificar que los datos se carguen correctamente
+    try {
+      final doc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
+      if (doc.exists) {
+        final data = doc.data();
+        if (data != null) {
+          _nameController.text = data['name'] ?? '';
+          _idController.text = data['idCard'] ?? '';
+          _phoneController.text = data['phone'] ?? '';
+          _emailController.text = data['email'] ?? '';
+          _originalData = {
+            'name': _nameController.text,
+            'idCard': _idController.text,
+            'phone': _phoneController.text,
+            'email': _emailController.text,
+          };
+          print('Datos cargados: $_originalData'); // Verificar que los datos se carguen correctamente
+        }
+      } else {
+        print('No se encontró el documento para el usuario: ${user.uid}');
       }
-    } else {
-      print('No se encontró el documento para el usuario: ${user.uid}');
-    }
-  } catch (error) {
-    print('Error al cargar datos: $error');
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error al cargar datos')),
-      );
-    }
-  } finally {
-    if (mounted) {
-      setState(() {
-        _isLoading = false;
-      });
+    } catch (error) {
+      print('Error al cargar datos: $error');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error al cargar datos')),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
-}
 
   Future<void> _saveUser () async {
     final user = FirebaseAuth.instance.currentUser ;
@@ -131,7 +133,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     } catch (error) {
       print('Error al guardar datos: $error');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error al guardar datos: $error ')),
+ SnackBar(content: Text('Error al guardar datos: $error ')),
       );
     } finally {
       if (mounted) {
@@ -195,22 +197,28 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   }
 
   Future<void> _signOut() async {
-  try {
-    // Realiza el cierre de sesión
-    await FirebaseAuth.instance.signOut();
+    try {
+      final user = FirebaseAuth.instance.currentUser ;
+      if (user != null) {
+        // Revocar el token del usuario en Firestore
+        await notificationsBloc.revokeToken(); // Llamar al método revokeToken del NotificationsBloc
+      }
 
-    // Navega a la pantalla de inicio de sesión y elimina todas las rutas anteriores
-    Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(builder: (context) => SplashScreenWrapper()),
-      (Route<dynamic> route) => false, // Elimina todas las rutas
-    );
-  } catch (e) {
-    print('Error al cerrar sesión: $e');
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Error al cerrar sesión')),
-    );
+      // Realiza el cierre de sesión
+      await FirebaseAuth.instance.signOut();
+
+      // Navega a la pantalla de inicio de sesión y elimina todas las rutas anteriores
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (context) => SplashScreenWrapper()),
+        (Route<dynamic> route) => false, // Elimina todas las rutas
+      );
+    } catch (e) {
+      print('Error al cerrar sesión: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error al cerrar sesión')),
+      );
+    }
   }
-}
 
   @override
   Widget build(BuildContext context) {

@@ -14,22 +14,23 @@ class AuthService with ChangeNotifier {
   // Método para crear un nuevo usuario
   Future<User?> createUser (String idCard, String phone, String address, String name, String email, String password) async {
   try {
-    // Imprimir los datos para depuración
-    print('Creando usuario con:');
-    print('ID Card: $idCard');
-    print('Name: $name');
-    print('Email: $email');
-    print('Phone: $phone');
-    print('Address: $address');
-
-    UserCredential result = await FirebaseAuth.instance.createUserWithEmailAndPassword(
+    UserCredential result = await _auth.createUserWithEmailAndPassword(
       email: email,
       password: password,
     );
 
-    // Aquí puedes verificar si result.user es nulo
     if (result.user != null) {
-      // Aquí va tu lógica para guardar el usuario en Firestore
+      // Guardar los datos del usuario en Firestore
+      await FirebaseFirestore.instance.collection('users').doc(result.user!.uid).set({
+        'idCard': idCard,
+        'phone': phone,
+        'address': address,
+        'name': name,
+        'email': email,
+        'role': 'cliente', // Asignar un rol por defecto
+        'tokens': [] // Inicializar un arreglo para los tokens
+      });
+
       return result.user;
     }
   } catch (error) {
@@ -56,12 +57,14 @@ class AuthService with ChangeNotifier {
 
   // Método para cerrar sesión
   Future<void> signOut() async {
-    try {
-      await _auth.signOut();
-    } catch (e) {
-      print('Error al cerrar sesión: $e');
-    }
+  try {
+    await _auth.signOut();
+    notifyListeners(); // Notificar a los oyentes que el usuario ha cerrado sesión
+  } catch (e) {
+    print('Error al cerrar sesión: $e');
+    throw Exception('Error al cerrar sesión: $e');
   }
+}
 
   // Método para obtener el rol del usuario
   Future<String> getRole(String uid) async {

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_application_1/models/cart.dart';
 import 'package:flutter_application_1/services/auth/auth_service.dart';
 import 'package:flutter_application_1/screens/store/product_screen.dart';
@@ -7,6 +8,7 @@ import 'package:flutter_application_1/screens/store/search_page.dart';
 import 'package:flutter_application_1/screens/users/user_screen.dart';
 import 'package:flutter_application_1/screens/admin/admin_screen.dart';
 import 'package:flutter_application_1/screens/client/cart_screen.dart';
+import 'package:flutter_application_1/services/bloc/notifications_bloc.dart'; // Asegúrate de importar tu NotificationsBloc
 
 class MyHomePage extends StatefulWidget {
   @override
@@ -31,6 +33,9 @@ class _MyHomePageState extends State<MyHomePage> {
       userRole = await authService.getRole(user.uid);
       if (mounted) {
         setState(() {});
+
+        // Solicitar permisos de notificación después de obtener el rol del usuario
+        context.read<NotificationsBloc>().requestPermission();
       }
     }
   }

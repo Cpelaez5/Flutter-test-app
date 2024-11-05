@@ -1,7 +1,9 @@
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/preferences/pref_usuarios.dart';
 import 'package:flutter_application_1/screens/splash_screen.dart'; // Mantén la pantalla de splash
 import 'package:flutter_application_1/services/auth/auth_service.dart';
+import 'package:flutter_application_1/services/localNotification/local_notification.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -25,6 +27,8 @@ void main() async {
   await PreferenciasUsuario.init();
   await  initializeDateFormatting();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+  await LocalNotification.initializeLocalNotifications();
   runApp(
     MultiBlocProvider(providers: [
     BlocProvider(create: (context) => NotificationsBloc()),

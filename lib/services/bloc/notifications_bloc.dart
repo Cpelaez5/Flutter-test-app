@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:bloc/bloc.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:equatable/equatable.dart';
@@ -5,49 +7,69 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 
 import '../../preferences/pref_usuarios.dart';
+import '../localNotification/local_notification.dart';
 
 part 'notifications_event.dart';
 part 'notifications_state.dart';
 
-class NotificationsBloc extends Bloc<NotificationsEvent, NotificationsState> {
+Future<void> firebaseMessagingBackgroundHandler( RemoteMessage message) async {
+    var mensaje = message.data;
+    var body = mensaje['body'] ?? 'No hay cuerpo';
+    var title = mensaje['title'] ?? 'Sin título';
 
+    Random random = Random();
+    var id = random.nextInt(100000);
+
+    LocalNotification.showLocalNotification(
+      id: id,
+      title: title,
+      body: body,
+    );
+  }
+
+class NotificationsBloc extends Bloc<NotificationsEvent, NotificationsState> {
   FirebaseMessaging messaging = FirebaseMessaging.instance;
 
   NotificationsBloc() : super(NotificationsInitial()) {
-
-  _onForegroundMessage();
+    _onForegroundMessage();
   }
 
-
   void requestPermission() async {
-    NotificationSettings settings = await messaging.requestPermission(
-      alert: true,
-      announcement: false,
-      badge: true,
-      carPlay: false,
-      criticalAlert: true,
-      provisional: false,
-      sound: true,
-    );
+    try {
+      NotificationSettings settings = await messaging.requestPermission(
+        alert: true,
+        announcement: false,
+        badge: true,
+        carPlay: false,
+        criticalAlert: true,
+        provisional: false,
+        sound: true,
+      );
+      await LocalNotification.requestPermissionLocalNotifications();
 
-    settings.authorizationStatus;
-    _getToken();
+      if (settings.authorizationStatus == AuthorizationStatus.authorized) {
+        _getToken();
+      } else {
+        print('Permisos de notificación no autorizados.');
+      }
+    } catch (e) {
+      print('Error al solicitar permisos de notificación: $e');
+    }
   }
 
   void _getToken() async {
-  final FirebaseMessaging messaging = FirebaseMessaging.instance;
-  final settings = await messaging.getNotificationSettings();
-  
-  if (settings.authorizationStatus != AuthorizationStatus.authorized) return;
+    final settings = await messaging.getNotificationSettings();
 
-  final token = await messaging.getToken();
+    if (settings.authorizationStatus != AuthorizationStatus.authorized) return;
+
+    final token = await messaging.getToken();
 
     if (token != null) {
       final prefs = PreferenciasUsuario();
       prefs.token = token;
 
-      // Aquí debes obtener el ID del usuario actual
-      String userId = FirebaseAuth.instance.currentUser ?.uid ?? '';// Reemplaza esto con el ID del usuario actual
+      // Obtener el ID del usuario actual
+      String userId = FirebaseAuth.instance.currentUser ?.uid ?? '';
 
       // Referencia al documento del usuario en Firestore
       DocumentReference userDoc = FirebaseFirestore.instance.collection('users').doc(userId);
@@ -59,16 +81,36 @@ class NotificationsBloc extends Bloc<NotificationsEvent, NotificationsState> {
     }
   }
 
-  //metodo para estar pendiente de los mensajes en primer plano
-  void _onForegroundMessage(){
+  // Método para estar pendiente de los mensajes en primer plano
+  void _onForegroundMessage() {
     FirebaseMessaging.onMessage.listen(handleRemoteMessage);
   }
 
+  // Método para manejar mensajes en segundo plano
+
   void handleRemoteMessage(RemoteMessage message) {
     var mensaje = message.data;
-    var body = mensaje['body'];
-    var title = mensaje['title'];
+    var body = mensaje['body'] ?? 'No hay cuerpo';
+    var title = mensaje['title'] ?? 'Sin título';
 
-    
+    Random random = Random();
+    var id = random.nextInt(100000);
+
+    LocalNotification.showLocalNotification(
+      id: id,
+      title: title,
+      body: body,
+    );
+  }
+
+  // Método para revocar el token al cerrar sesión
+  Future<void> revokeToken() async {
+    String userId = FirebaseAuth.instance.currentUser ?.uid ?? '';
+    if (userId.isNotEmpty) {
+      DocumentReference userDoc = FirebaseFirestore.instance.collection('users').doc(userId);
+      await userDoc.update({
+        'tokens': FieldValue.arrayRemove([PreferenciasUsuario().token]) // Remover el token actual
+      });
+    }
   }
 }
