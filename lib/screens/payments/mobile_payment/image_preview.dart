@@ -10,10 +10,10 @@ class ImagePreviewScreen extends StatefulWidget {
   final Function(String?) onImageSelected;
 
   const ImagePreviewScreen({
-    Key? key,
+    super.key,
     required this.documentId,
     required this.onImageSelected,
-  }) : super(key: key);
+  });
 
   @override
   _ImagePreviewScreenState createState() => _ImagePreviewScreenState();
@@ -161,7 +161,7 @@ class _ImagePreviewScreenState extends State<ImagePreviewScreen> {
                       children: [
                         ClipRRect(
                           borderRadius: BorderRadius.circular(26), // Redondear bordes
-                          child: Container(
+                          child: SizedBox(
                             width: screenWidth * 0.9, // Ancho de la imagen
                             height: 200, // Limitar la altura de la imagen
                             child: Image.network(
@@ -173,7 +173,7 @@ class _ImagePreviewScreenState extends State<ImagePreviewScreen> {
                         Column(
                           children: [
                             const SizedBox(height: 16), // Espacio adicional para bajar el botón
-                            Container(
+                            SizedBox(
                               width: screenWidth * 0.9, // Ancho del botón
                               child: ElevatedButton.icon(
                                 onPressed: changeImage, // Cambiar la imagen

@@ -3,32 +3,60 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 class NotificationService {
-  static Future<void> sendNotificationToAdmins(String message) async {
-    // Obtener los usuarios administradores
-    QuerySnapshot adminUsers = await FirebaseFirestore.instance
-        .collection('users')
-        .where('role', isEqualTo: 'cliente')
-        .get();
+  static Future<void> sendNotification(String title, String message, String? userRole, String? userId) async {
+    Set<String> tokens = {}; // Usar un Set para evitar duplicados
 
-    for (var doc in adminUsers.docs) {
-      String? token = doc['token']; // Asegúrate de que el campo 'token' exista en tu documento
+    if (userId != null) {
+      // Obtener el documento del usuario específico
+      DocumentSnapshot userDoc = await FirebaseFirestore.instance.collection('users').doc(userId).get();
+      
+      if (userDoc.exists) {
+        final data = userDoc.data() as Map<String, dynamic>?; 
+        if (data != null && data.containsKey('tokens') && data['tokens'] is List) {
+          // Agregar los tokens al Set
+          tokens.addAll(List<String>.from(data['tokens']));
+        } else {
+          print('El documento del usuario $userId no contiene el campo "tokens" o no es una lista.');
+        }
+      } else {
+        print('El documento del usuario $userId no existe.');
+      }
+    } else {
+      // Obtener los usuarios por rol
+      QuerySnapshot roleUsers = await FirebaseFirestore.instance
+          .collection('users')
+          .where('role', isEqualTo: userRole)
+          .get();
 
-      if (token != null) {
-        // Enviar la notificación
-        await http.post(
-          Uri.parse('https://fcm.googleapis.com/fcm/send'),
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'key=YAK33uM5elGYz00eXHoY9XaTcMRZPNgKV5MH2zK4JGM', // Reemplaza con tu clave de servidor
+      for (var doc in roleUsers.docs) {
+        final data = doc.data() as Map<String, dynamic>?; 
+        if (data != null && data.containsKey('tokens') && data['tokens'] is List) {
+          // Agregar los tokens al Set
+          tokens.addAll(List<String>.from(data['tokens']));
+        } else {
+          print('El documento ${doc.id} no contiene el campo "tokens" o no es una lista.');
+        }
+      }
+    }
+
+    // Enviar la notificación a cada token
+    for (String token in tokens) {
+      final response = await http.post(
+        Uri.parse('https://cantina-app-notification-service.onrender.com/notifications'),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({
+          'token': token,
+          'data': {
+            'title': title,
+            'body': message,
           },
-          body: jsonEncode({
-            'to': token,
-            'notification': {
-              'title': 'Nuevo Pago Registrado',
-              'body': message,
-            },
-          }),
-        );
+        }),
+      );
+
+      if (response.statusCode != 200) {
+        print('Error al enviar la notificación a $token: ${response.body}');
       }
     }
   }

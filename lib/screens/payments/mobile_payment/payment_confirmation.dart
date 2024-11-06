@@ -17,7 +17,7 @@ class PaymentConfirmationScreen extends StatefulWidget {
   final List<Map<String, dynamic>> products;
 
   const PaymentConfirmationScreen({
-    Key? key,
+    super.key,
     required this.confirmedPhone,
     required this.selectedDate,
     required this.selectedBank,
@@ -25,7 +25,7 @@ class PaymentConfirmationScreen extends StatefulWidget {
     required this.referenceNumber,
     required this.totalAmount,
     required this.products,
-  }) : super(key: key);
+  });
 
   @override
   _PaymentConfirmationScreenState createState() => _PaymentConfirmationScreenState();
@@ -88,8 +88,11 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
       });
 
       // Enviar notificación a los administradores
-      await NotificationService.sendNotificationToAdmins(
-        'Un nuevo pago móvil ha sido registrado con el número de referencia: ${widget.referenceNumber}'
+      await NotificationService.sendNotification(
+        'Nuevo Pago Registrado',
+        'Un nuevo pago móvil por Bs.${widget.totalAmount}0 ha sido registrado',
+        'administrador',
+        null,
       );
 
       ScaffoldMessenger.of(context).showSnackBar(

@@ -9,7 +9,7 @@ class AdminOrderScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Pagos Móviles'),
+        title: const Text('Pagos/Pedidos'),
       ),
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance.collection('payments').snapshots(),
