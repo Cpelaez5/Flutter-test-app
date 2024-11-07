@@ -7,6 +7,7 @@ import 'package:flutter_application_1/services/localNotification/local_notificat
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart'; // Importa el paquete dotenv
 import 'firebase_options.dart';
 import 'screens/my_home_page.dart';
 import 'screens/not_found_screen.dart';
@@ -19,22 +20,27 @@ import 'package:timeago/timeago.dart' as timeago;
 import 'package:intl/intl.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
-void main() async {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Cargar el archivo .env
+  await dotenv.load(fileName: ".dotenv");
 
   timeago.setLocaleMessages('es', timeago.EsMessages());
   Intl.defaultLocale = 'es_ES';
   await PreferenciasUsuario.init();
-  await  initializeDateFormatting();
+  await initializeDateFormatting();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
   await LocalNotification.initializeLocalNotifications();
+  
   runApp(
-    MultiBlocProvider(providers: [
-    BlocProvider(create: (context) => NotificationsBloc()),
-    ], 
-    child: MyApp(),
-    )
+    MultiBlocProvider(
+      providers: [
+        BlocProvider(create: (context) => NotificationsBloc()),
+      ],
+      child: MyApp(),
+    ),
   );
 }
 

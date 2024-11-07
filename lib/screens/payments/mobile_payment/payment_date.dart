@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../data/payment_data.dart';
+import '../../../widgets/custom_dialog.dart';
 import 'confirm_amount.dart'; // Asegúrate de que la ruta sea correcta
 
 class PaymentDateScreen extends StatefulWidget {
@@ -9,7 +10,7 @@ class PaymentDateScreen extends StatefulWidget {
   final String referenceNumber;
   final String selectedBank;
   final String? action;
-  
+
   const PaymentDateScreen({
     super.key,
     required this.confirmedPhone,
@@ -21,7 +22,6 @@ class PaymentDateScreen extends StatefulWidget {
   });
 
   @override
-  
   _PaymentDateScreenState createState() => _PaymentDateScreenState();
 }
 
@@ -43,9 +43,27 @@ class _PaymentDateScreenState extends State<PaymentDateScreen> {
         title: const Text('Verificación de Pago'),
         centerTitle: true,
         backgroundColor: Colors.deepOrange,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.close),
+            onPressed: () {
+              String title = 'No olvides registrar tu pago';
+              String message;
+
+              if (widget.products.isNotEmpty) {
+                message = 'Si te retrasas en el pago de ${widget.products.length > 1 ? "los artículos" : "una orden"}, podrías perder la reserva del artículo.';
+              } else {
+                message = 'Si hiciste un pago, no olvides registrarlo.';
+              }
+
+              // Usa el CustomSnackbar para mostrar el Snackbar
+              CustomDialog.show(context, title, message);
+            }, // Muestra el Snackbar al presionar el icono
+          ),
+        ],
       ),
-      body: Padding(
-                padding: const EdgeInsets.all(16.0),
+      body: SingleChildScrollView( // Permite el desplazamiento
+        padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -110,8 +128,7 @@ class _PaymentDateScreenState extends State<PaymentDateScreen> {
             ),
             const SizedBox(height: 32),
             Center(
-              child: ElevatedButton(
-                onPressed: () {
+              child: ElevatedButton(onPressed: () {
                   if (widget.action == 'edit') {
                     // Regresar a la pantalla anterior con la fecha seleccionada
                     Navigator.of(context).pop(selectedDate);
@@ -177,7 +194,7 @@ class _PaymentDateScreenState extends State<PaymentDateScreen> {
       child: Container(
         padding: const EdgeInsets.all(16.0),
         decoration: BoxDecoration(
-                    color: isSelected ? Colors.deepOrange[100] : Colors.white,
+          color: isSelected ? Colors.deepOrange[100] : Colors.white,
           borderRadius: BorderRadius.circular(8.0),
           border: Border.all(
             color: isSelected ? Colors.deepOrange : Colors.grey,

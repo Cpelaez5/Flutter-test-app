@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../models/order_model.dart';
 import '../../widgets/payment_card.dart';
-import '../client/payment_screen.dart';
+import '../payments/payment_screen.dart';
 import '../payments/payment_detail_screen.dart'; // Importa el nuevo widget
 
 class UserOrdersScreen extends StatelessWidget {

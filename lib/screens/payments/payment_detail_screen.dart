@@ -7,6 +7,7 @@ import '../../services/notification_service.dart';
 import '../../services/users/get_user_role.dart';
 import '../../services/payments/update_payment_status.dart';
 import 'package:collection/collection.dart'; // Importar la biblioteca collection
+import '../../widgets/image_viewer.dart'; // Asegúrate de que esta ruta sea correcta
 
 class PaymentDetailScreen extends StatefulWidget {
   final Payment payment;
@@ -21,6 +22,7 @@ class _PaymentDetailScreenState extends State<PaymentDetailScreen> {
   String userRole = 'cliente'; // Valor por defecto
   List<Product> allProducts = []; // Lista para almacenar todos los productos
   bool isLoading = true; // Variable para manejar el estado de carga
+  String? imageUrl; // Variable para almacenar la URL de la imagen
   final GlobalKey<ScaffoldMessengerState> _scaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
 
   @override
@@ -32,6 +34,7 @@ class _PaymentDetailScreenState extends State<PaymentDetailScreen> {
         isLoading = false;
       });
     });
+    _fetchPaymentImageUrl(); // Llamar a la función para obtener la URL de la imagen
   }
 
   Future<void> _fetchUserRole() async {
@@ -57,6 +60,23 @@ class _PaymentDetailScreenState extends State<PaymentDetailScreen> {
     }
 
     setState(() {}); // Actualiza el estado para reflejar los productos cargados
+  }
+
+  Future<void> _fetchPaymentImageUrl() async {
+    try {
+      DocumentSnapshot paymentDoc = await FirebaseFirestore.instance
+          .collection('payments')
+          .doc(widget.payment.id)
+          .get();
+
+      if (paymentDoc.exists) {
+        setState(() {
+          imageUrl = (paymentDoc.data() as Map<String, dynamic>)['imageUrl']; // Cast to Map<String, dynamic>
+        });
+      }
+    } catch (e) {
+      print("Error al obtener la URL de la imagen: $e");
+    }
   }
 
   void _showConfirmationDialog() {
@@ -98,9 +118,7 @@ class _PaymentDetailScreenState extends State<PaymentDetailScreen> {
 
                   // Muestra un mensaje de éxito
                   if (mounted) {
-                    _scaffoldMessengerKey.currentState?.showSnackBar(
-                      SnackBar(content: Text('Pago marcado como finalizado')),
-                    );
+                    _scaffoldMessengerKey.currentState?.showSnackBar(SnackBar(content: Text('Pago marcado como finalizado')));
                   }
                 } catch (e) {
                   // Muestra un mensaje de error
@@ -117,6 +135,15 @@ class _PaymentDetailScreenState extends State<PaymentDetailScreen> {
         );
       },
     );
+  }
+
+  void _showImageDialog() {
+    if (imageUrl != null) {
+      showDialog(
+        context: context,
+        builder: (context) => ImageViewer(imageUrl: imageUrl!),
+      );
+    }
   }
 
   @override
@@ -140,7 +167,7 @@ class _PaymentDetailScreenState extends State<PaymentDetailScreen> {
                       style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 8),
- _buildProductsList(widget.payment.products),
+                    _buildProductsList(widget.payment.products),
                     const SizedBox(height: 16),
                     if (userRole == 'administrador')
                       ElevatedButton(
@@ -155,37 +182,50 @@ class _PaymentDetailScreenState extends State<PaymentDetailScreen> {
   }
 
   Widget _buildPaymentInfoCard(Payment payment) {
-    DateTime paymentDateTime = payment.timestamp;
+  DateTime paymentDateTime = payment.timestamp;
 
-    return Card(
-      elevation: 4,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              ' Información del Pago',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+  return Card(
+    elevation: 4,
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(8),
+    ),
+    child: Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Stack( // Usamos Stack para superponer el botón
+        children: [
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                ' Información del Pago',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 12),
+              Text('Fecha del pago: ${payment.paymentDate}'),
+              Text('Referencia: ${payment.referenceNumber}'),
+              Text('Monto: ${payment.paymentAmount} Bs.'),
+              Text('Estado: ${payment.paymentStatus}'),
+              Text('Banco: ${payment.selectedBank}'),
+              Text('Usuario: ${payment.id}'),
+              Text('Registrado: ${paymentDateTime.day}/${paymentDateTime.month}/${paymentDateTime.year} ${paymentDateTime.hour}:${paymentDateTime.minute}'),
+              if (payment.paymentMethod == 'pago_movil')
+                Text('Teléfono: ${payment.phoneNumber}'),
+            ],
+          ),
+          if (imageUrl != null) // Mostrar el botón solo si imageUrl no es nulo
+            Align(
+              alignment: Alignment.bottomRight,
+              child: IconButton(
+                tooltip: 'Ver comprobante',
+                icon: Icon(Icons.image, size: 30),
+                onPressed: _showImageDialog,
+              ),
             ),
-            const SizedBox(height: 12),
-            Text('Fecha del pago: ${payment.paymentDate}'),
-            Text('Referencia: ${payment.referenceNumber}'),
-            Text('Monto: ${payment.paymentAmount} Bs.'),
-            Text('Estado: ${payment.paymentStatus}'),
-            Text('Banco: ${payment.selectedBank}'),
-            Text('Usuario: ${payment.id}'),
-            Text('Registrado: ${paymentDateTime.day}/${paymentDateTime.month}/${paymentDateTime.year} ${paymentDateTime.hour}:${paymentDateTime.minute}'),
-            if (payment.paymentMethod == 'pago_movil')
-              Text('Teléfono: ${payment.phoneNumber}'),
-          ],
-        ),
+        ],
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildProductsList(List<dynamic> productDataList) {
     if (productDataList.isEmpty) {

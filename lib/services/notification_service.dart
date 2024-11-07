@@ -1,12 +1,13 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class NotificationService {
   static Future<void> sendNotification(String title, String message, String? userRole, String? userId) async {
     Set<String> tokens = {}; // Usar un Set para evitar duplicados
 
-    if (userId != null) {
+    if (userId != null ) {
       // Obtener el documento del usuario específico
       DocumentSnapshot userDoc = await FirebaseFirestore.instance.collection('users').doc(userId).get();
       
@@ -42,7 +43,7 @@ class NotificationService {
     // Enviar la notificación a cada token
     for (String token in tokens) {
       final response = await http.post(
-        Uri.parse('https://cantina-app-notification-service.onrender.com/notifications'),
+        Uri.parse(dotenv.env['API_URL']!),
         headers: {
           'Content-Type': 'application/json',
         },

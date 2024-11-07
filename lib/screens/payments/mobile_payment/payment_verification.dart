@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart'; // Asegúrate de tener esta dependencia en tu pubspec.yaml
+import '../../../widgets/custom_dialog.dart';
 import 'bank_selection.dart';
 import 'confirm_amount.dart';
 import 'payment_confirmation.dart';
@@ -56,6 +57,24 @@ class _PaymentVerificationScreenState extends State<PaymentVerificationScreen> {
         title: const Text('Verificación de Pago'),
         centerTitle: true,
         backgroundColor: Colors.deepOrange,
+         actions: [
+          IconButton(
+            icon: const Icon(Icons.close),
+            onPressed: () {
+              String title = 'No olvides registrar tu pago';
+              String message;
+
+              if (widget.products.isNotEmpty) {
+                message = 'Si te retrasas en el pago de ${widget.products.length > 1 ? "los artículos" : "una orden"}, podrías perder la reserva del artículo.';
+              } else {
+                message = 'Si hiciste un pago, no olvides registrarlo.';
+              }
+
+              // Usa el CustomSnackbar para mostrar el Snackbar
+              CustomDialog.show(context, title, message);
+            }, // Muestra el Snackbar al presionar el icono
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
@@ -89,7 +108,7 @@ class _PaymentVerificationScreenState extends State<PaymentVerificationScreen> {
                   padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 40),
                   textStyle: const TextStyle(fontSize: 18, color: Colors.white),
                 ),
-                child: const Text('Confirmar pago'),
+                child: Text('Confirmar pago', style: TextStyle(color: Colors.white)),
               ),
             ),
           ],

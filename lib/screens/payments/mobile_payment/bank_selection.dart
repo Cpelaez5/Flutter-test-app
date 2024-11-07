@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../data/payment_data.dart';
+import '../../../widgets/custom_dialog.dart';
 import 'payment_date.dart'; // Asegúrate de que esta ruta sea correcta
 
 class BankSelectionScreen extends StatefulWidget {
@@ -15,7 +16,7 @@ class BankSelectionScreen extends StatefulWidget {
     required this.totalAmount,
     required this.products,
     required this.referenceNumber,
-    this.action
+    this.action,
   });
 
   @override
@@ -24,6 +25,30 @@ class BankSelectionScreen extends StatefulWidget {
 
 class _BankSelectionScreenState extends State<BankSelectionScreen> {
   String? selectedBank;
+  List<String> filteredBanks = banks; // Lista filtrada de bancos
+  final TextEditingController searchController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    // Escuchar cambios en el texto del campo de búsqueda
+    searchController.addListener(_filterBanks);
+  }
+
+  @override
+  void dispose() {
+    searchController.dispose(); // Limpiar el controlador al eliminar la pantalla
+    super.dispose();
+  }
+
+  void _filterBanks() {
+    String query = searchController.text.toLowerCase();
+    setState(() {
+      filteredBanks = banks
+          .where((bank) => bank.toLowerCase().contains(query))
+          .toList();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -32,6 +57,24 @@ class _BankSelectionScreenState extends State<BankSelectionScreen> {
         title: const Text('Verificación de Pago'),
         centerTitle: true,
         backgroundColor: Colors.deepOrange,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.close),
+            onPressed: () {
+              String title = 'No olvides registrar tu pago';
+              String message;
+
+              if (widget.products.isNotEmpty) {
+                message = 'Si te retrasas en el pago de ${widget.products.length > 1 ? "los artículos" : "una orden"}, podrías perder la reserva del artículo.';
+              } else {
+                message = 'Si hiciste un pago, no olvides registrarlo.';
+              }
+
+              // Usa el CustomSnackbar para mostrar el Snackbar
+              CustomDialog.show(context, title, message);
+            }, // Muestra el Snackbar al presionar el icono
+          ),
+        ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -48,31 +91,25 @@ class _BankSelectionScreenState extends State<BankSelectionScreen> {
               ),
             ),
             const SizedBox(height: 16),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-              decoration: BoxDecoration(
-                color: Colors.grey[200],
-                borderRadius: BorderRadius.circular(8.0),
-              ),
-              child: Row(
-                children: [
-                  const Icon(Icons.search, color: Colors.grey),
-                  const SizedBox(width: 8),
-                  const Expanded(
-                    child: Text(
-                      'Busca tu banco aquí',
-                      style: TextStyle(fontSize: 16, color: Colors.grey),
-                    ),
-                  ),
-                ],
+            TextField(
+              controller: searchController,
+              decoration: InputDecoration(
+                hintText: 'Busca tu banco aquí',
+                prefixIcon: const Icon(Icons.search, color: Colors.grey),
+                filled: true,
+                fillColor: Colors.grey[200],
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8.0),
+                  borderSide: BorderSide.none,
+                ),
               ),
             ),
             const SizedBox(height: 16),
             Expanded(
               child: ListView.builder(
-                itemCount: banks.length,
+                itemCount: filteredBanks.length,
                 itemBuilder: (context, index) {
-                  final bank = banks[index];
+                  final bank = filteredBanks[index];
                   return GestureDetector(
                     onTap: () {
                       setState(() {
@@ -98,7 +135,7 @@ class _BankSelectionScreenState extends State<BankSelectionScreen> {
                           color: selectedBank == bank ? Colors.deepOrange : Colors.black87,
                         ),
                       ),
-                    ),
+                  ),
                   );
                 },
               ),
@@ -108,13 +145,13 @@ class _BankSelectionScreenState extends State<BankSelectionScreen> {
               Center(
                 child: ElevatedButton(
                   onPressed: () {
-                     if (widget.action == 'edit') {
+                    if (widget.action == 'edit') {
                       setState(() {
-                  selectedBank = selectedBank;
-                });
-                // Regresar a payment verification con el nuevo banco
-                return Navigator.of(context).pop(selectedBank);
-                  }
+                        selectedBank = selectedBank;
+                      });
+                      // Regresar a payment verification con el nuevo banco
+                      return Navigator.of(context).pop(selectedBank);
+                    }
                     // Navegar a la siguiente pantalla pasando los datos necesarios
                     Navigator.push(
                       context,
@@ -135,8 +172,8 @@ class _BankSelectionScreenState extends State<BankSelectionScreen> {
                     textStyle: const TextStyle(fontSize: 18),
                   ),
                   child: Text(
-                    widget.action == 'edit' ? 'Actualizar Banco' : 'Confirmar Banco'
-                    ),
+                    widget.action == 'edit' ? 'Actualizar Banco' : 'Confirmar Banco',
+                  ),
                 ),
               ),
           ],

@@ -12,7 +12,7 @@ import 'package:cached_network_image/cached_network_image.dart'; // Asegúrate d
 class ProductScreen extends StatefulWidget {
   final Cart cart;
 
-  ProductScreen({required this.cart});
+  const ProductScreen({required this.cart, super.key});
 
   @override
   _ProductScreenState createState() => _ProductScreenState();
@@ -42,10 +42,10 @@ class _ProductScreenState extends State<ProductScreen> {
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        title: Text('Productos'),
+        title: const Text('Productos'),
         actions: [
           IconButton(
-            icon: Icon(Icons.search),
+            icon: const Icon(Icons.search),
             onPressed: () {
               Navigator.push(
                 context,
@@ -61,11 +61,11 @@ class _ProductScreenState extends State<ProductScreen> {
         future: _productsFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
+            return const Center(child: CircularProgressIndicator());
           } else if (snapshot.hasError) {
-            return Center(child: Text('Error al cargar productos'));
+            return const Center(child: Text('Error al cargar productos'));
           } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return Center(child: Text('No hay productos disponibles'));
+            return const Center(child: Text('No hay productos disponibles'));
           }
 
           final products = snapshot.data!;
@@ -73,7 +73,7 @@ class _ProductScreenState extends State<ProductScreen> {
           return Padding(
             padding: const EdgeInsets.all(8.0),
             child: GridView.builder(
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 2,
                 childAspectRatio: 1 / 1.5,
                 crossAxisSpacing: 12.0,
@@ -99,7 +99,7 @@ class ProductCard extends StatelessWidget {
   final Product product;
   final Cart cart;
 
-  ProductCard({required this.product, required this.cart});
+  const ProductCard({required this.product, required this.cart, super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -125,8 +125,8 @@ class ProductCard extends StatelessWidget {
                     fit: BoxFit.cover,
                     width: double.infinity,
                     height: double.infinity,
-                    errorWidget: (context, url, error) => Center(child: Icon(Icons.error)), // Manejar error de carga
-                    placeholder: (context, url) => Center(child: CircularProgressIndicator()), // Indicador de carga
+                    errorWidget: (context, url, error) => const Center(child: Icon(Icons.error)), // Manejar error de carga
+                    placeholder: (context, url) => const Center(child: CircularProgressIndicator()), // Indicador de carga
                   ),
                 ),
                 Padding(
@@ -136,13 +136,13 @@ class ProductCard extends StatelessWidget {
                     children: [
                       Text(
                         product.name,
-                        style: TextStyle(fontWeight: FontWeight.bold),
+                        style: const TextStyle(fontWeight: FontWeight.bold),
                         maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
+                        overflow: TextOverflow .ellipsis,
                       ),
                       Text(
                         '\$ ${product.price.toStringAsFixed(2)}',
-                        style: TextStyle(color: Colors.green),
+                        style: const TextStyle(color: Colors.green),
                       ),
                     ],
                   ),

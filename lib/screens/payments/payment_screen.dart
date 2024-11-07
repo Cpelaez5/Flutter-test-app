@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../models/product.dart';
-import '../payments/mobile_payment/mobile_payment_info.dart';
+import 'mobile_payment/mobile_payment_info.dart';
 // Asegúrate de que la ruta sea correcta
 
 class PaymentScreen extends StatefulWidget {

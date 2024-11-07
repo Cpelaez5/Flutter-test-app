@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../utils/currency_input_formatter.dart';
+import '../../../widgets/custom_dialog.dart';
 import 'payment_verification.dart'; // Asegúrate de que la ruta sea correcta
 
 class ConfirmAmountScreen extends StatefulWidget {
@@ -42,6 +43,24 @@ class _ConfirmAmountScreenState extends State<ConfirmAmountScreen> {
         title: const Text('Verificación de Pago'),
         centerTitle: true,
         backgroundColor: Colors.deepOrange,
+         actions: [
+          IconButton(
+            icon: const Icon(Icons.close),
+            onPressed: () {
+              String title = 'No olvides registrar tu pago';
+              String message;
+
+              if (widget.products.isNotEmpty) {
+                message = 'Si te retrasas en el pago de ${widget.products.length > 1 ? "los artículos" : "una orden"}, podrías perder la reserva del artículo.';
+              } else {
+                message = 'Si hiciste un pago, no olvides registrarlo.';
+              }
+
+              // Usa el CustomSnackbar para mostrar el Snackbar
+              CustomDialog.show(context, title, message);
+            }, // Muestra el Snackbar al presionar el icono
+          ),
+        ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -128,7 +147,7 @@ class _ConfirmAmountScreenState extends State<ConfirmAmountScreen> {
                     MaterialPageRoute(
                       builder: (context) => PaymentVerificationScreen(
                         confirmedPhone: widget.confirmedPhone,
-                                                totalAmount: widget.totalAmount,
+                        totalAmount: widget.totalAmount,
                         products: widget.products,
                         referenceNumber: widget.referenceNumber,
                         selectedBank: widget.selectedBank,

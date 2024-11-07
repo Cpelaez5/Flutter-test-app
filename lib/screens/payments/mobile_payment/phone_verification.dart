@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'reference_number.dart';
+import '../../../utils/phone_validation.dart';
+import '../../../widgets/custom_dialog.dart';
+import '../../../widgets/error_dialog.dart';
+import 'reference_number.dart';// Importar la función de validación
 
 class PhoneVerificationScreen extends StatefulWidget {
   final String userId; // ID del usuario
@@ -40,6 +43,7 @@ class _PhoneVerificationScreenState extends State<PhoneVerificationScreen> {
       if (snapshot.exists) {
         setState(() {
           phone = snapshot['phone'];
+          _phoneController.text = phone ?? ''; // Pre-cargar el número en el controlador
         });
       }
     } catch (e) {
@@ -55,6 +59,23 @@ class _PhoneVerificationScreenState extends State<PhoneVerificationScreen> {
       appBar: AppBar(
         title: const Text('Verificación de pago'),
         centerTitle: true,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.close),
+            onPressed: () {
+              String title = 'No olvides registrar tu pago';
+              String message;
+
+              if (widget.products.isNotEmpty) {
+                message = 'Si te retrasas en el pago de ${widget.products.length > 1 ? "los artículos" : "una orden"}, podrías perder la reserva del artículo.';
+              } else {
+                message = 'Si hiciste un pago, no olvides registrarlo.';
+              }
+
+              CustomDialog.show(context, title, message);
+            },
+          ),
+        ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -81,7 +102,6 @@ class _PhoneVerificationScreenState extends State<PhoneVerificationScreen> {
               const SizedBox(height: 32),
               ElevatedButton(
                 onPressed: () {
-                  // Mostrar un campo de texto para ingresar un nuevo número
                   showDialog(
                     context: context,
                     builder: (context) {
@@ -101,11 +121,15 @@ class _PhoneVerificationScreenState extends State<PhoneVerificationScreen> {
                           ),
                           TextButton(
                             onPressed: () {
-                              // Aquí puedes manejar el nuevo número
-                              setState(() {
-                                phone = _phoneController.text;
-                              });
-                              Navigator.of(context).pop();
+                              String newPhone = _phoneController.text;
+                              if (validatePhoneNumber(newPhone)) {
+                                setState(() {
+                                  phone = newPhone;
+                                });
+                                Navigator.of(context).pop();
+                              } else {
+                                ErrorDialog.show(context, 'Número inválido', 'Por favor, ingrese un número de teléfono válido.');
+                              }
                             },
                             child: const Text('Aceptar'),
                           ),
@@ -120,23 +144,32 @@ class _PhoneVerificationScreenState extends State<PhoneVerificationScreen> {
               ElevatedButton(
                 onPressed: () {
                   if (widget.action == 'edit') {
+                    String newPhone = _phoneController.text;
+                    if (validatePhoneNumber(newPhone)) {
                       setState(() {
-                  phone = _phoneController.text;
-                });
-                // Regresar a la pantalla anterior con el nuevo número
-                return Navigator.of(context).pop(phone);
+                        phone = newPhone;
+                      });
+                      return Navigator.of(context).pop(phone);
+                    } else {
+                      ErrorDialog.show(context, 'Número inválido', 'Por favor, ingrese un número de teléfono válido.');
+                      return;
+                    }
                   }
                   // Navegar a la pantalla de ingreso del número de referencia
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => ReferenceNumberScreen(
-                        confirmedPhone: phone ?? '', // El número de teléfono confirmado
-                        totalAmount: widget.totalAmount, // Total amount
-                        products: widget.products, // Lista de productos
+                  if (validatePhoneNumber(phone ?? '')) {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => ReferenceNumberScreen(
+                          confirmedPhone: phone ?? '', // El número de teléfono confirmado
+                          totalAmount: widget.totalAmount, // Total amount
+                          products: widget.products, // Lista de productos
+                        ),
                       ),
-                    ),
-                  );
+                    );
+                  } else {
+                    ErrorDialog.show(context, 'Número inválido', 'Por favor, ingrese un número de teléfono válido.');
+                  }
                 },
                 style: ElevatedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 40),
@@ -144,7 +177,7 @@ class _PhoneVerificationScreenState extends State<PhoneVerificationScreen> {
                 ),
                 child: Text(
                   widget.action == 'edit' ? 'Actualizar número' : 'Confirmar número',
-                  ),
+                ),
               ),
             ],
           ),

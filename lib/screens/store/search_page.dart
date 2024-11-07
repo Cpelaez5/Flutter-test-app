@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart'; // Importar el paquete
 import '../../models/cart.dart';
 import '../../models/product.dart';
-import '../../services/product_service.dart'; // Asegúrate de importar el servicio
+import '../../services/product_service.dart';
 import 'product_detail_screen.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'dart:async'; // Para el debounce
 
 class ProductSearchPage extends StatefulWidget {
-  final Cart cart; // Recibe el carrito como parámetro
+  final Cart cart;
 
   const ProductSearchPage({super.key, required this.cart});
 
@@ -17,34 +19,43 @@ class ProductSearchPage extends StatefulWidget {
 class ProductSearchPageState extends State<ProductSearchPage> {
   TextEditingController _searchController = TextEditingController();
   List<Product> _filteredProducts = [];
-  List<Product> _allProducts = []; // Lista para almacenar todos los productos
-  String? _selectedCategory; // Variable para almacenar la categoría seleccionada
-  List<String> _categories = []; // Lista de categorías
+  List<Product> _allProducts = [];
+  String? _selectedCategory;
+  List<String> _categories = [];
+  Timer? _debounce; // Timer para el debounce
 
   @override
   void initState() {
     super.initState();
-    _searchController.addListener(_filterProducts);
-    _fetchProducts(); // Cargar productos al iniciar
+    _searchController.addListener(_onSearchChanged);
+    _fetchProducts();
   }
 
   Future<void> _fetchProducts() async {
     try {
-      List<Product> products = await ProductService().fetchProducts();
-      setState(() {
-        _allProducts = products;
-        _filteredProducts = products; // Inicialmente, todos los productos están filtrados
-        _categories = _getCategories(products); // Obtener categorías de los productos
-      });
+      // Solo carga los productos una vez
+      if (_allProducts.isEmpty) {
+        List<Product> products = await ProductService().fetchProducts();
+        setState(() {
+          _allProducts = products;
+          _filteredProducts = products;
+          _categories = _getCategories(products);
+        });
+      }
     } catch (e) {
-      // Manejar errores al obtener productos
       print('Error al obtener productos: $e');
     }
   }
 
   List<String> _getCategories(List<Product> products) {
-    // Obtener una lista única de categorías
     return products.map((product) => product.category).toSet().toList();
+  }
+
+  void _onSearchChanged() {
+    if (_debounce?.isActive ?? false) _debounce!.cancel();
+    _debounce = Timer(const Duration(milliseconds: 300), () {
+      _filterProducts();
+    });
   }
 
   void _filterProducts() {
@@ -52,7 +63,7 @@ class ProductSearchPageState extends State<ProductSearchPage> {
     setState(() {
       _filteredProducts = _allProducts.where((product) {
         final matchesQuery = product.name.toLowerCase().contains(query) ||
-                             product.description.toLowerCase().contains(query);
+            product.description.toLowerCase().contains(query);
         final matchesCategory = _selectedCategory == null || product.category == _selectedCategory;
         return matchesQuery && matchesCategory;
       }).toList();
@@ -62,6 +73,7 @@ class ProductSearchPageState extends State<ProductSearchPage> {
   @override
   void dispose() {
     _searchController.dispose();
+    _debounce?.cancel(); // Cancelar el debounce al salir
     super.dispose();
   }
 
@@ -83,7 +95,7 @@ class ProductSearchPageState extends State<ProductSearchPage> {
               onChanged: (String? newValue) {
                 setState(() {
                   _selectedCategory = newValue;
-                  _filterProducts(); // Filtrar productos al cambiar la categoría
+                  _filterProducts();
                 });
               },
               items: _categories.map<DropdownMenuItem<String>>((String category) {
@@ -93,7 +105,7 @@ class ProductSearchPageState extends State<ProductSearchPage> {
                 );
               }).toList(),
             ),
-            SizedBox(height: 8),
+            const SizedBox(height: 8),
             // Campo de búsqueda
             TextField(
               controller: _searchController,
@@ -113,11 +125,13 @@ class ProductSearchPageState extends State<ProductSearchPage> {
 
                   return ListTile(
                     leading: product.imageUrl.isNotEmpty
-                        ? Image.network(
-                            product.imageUrl,
+                        ? CachedNetworkImage(
+                            imageUrl: product.imageUrl,
                             width: 50,
                             height: 50,
                             fit: BoxFit.cover,
+                            placeholder: (context, url ) => CircularProgressIndicator(),
+                            errorWidget: (context, url, error) => Icon(Icons.error),
                           )
                         : null,
                     title: Text(product.name).animate().fadeIn(duration: 500.ms, curve: Curves.easeInOut).slide(duration: 500.ms, curve: Curves.easeInOut),
@@ -130,7 +144,7 @@ class ProductSearchPageState extends State<ProductSearchPage> {
                               : product.description,
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
-                        ).animate().fadeIn(duration : 500.ms, curve: Curves.easeInOut).slide(duration: 500.ms, curve: Curves.easeInOut),
+                        ).animate().fadeIn(duration: 500.ms, curve: Curves.easeInOut).slide(duration: 500.ms, curve: Curves.easeInOut),
                         Text(
                           'Precio: \$${product.price}',
                           style: TextStyle(
@@ -152,13 +166,12 @@ class ProductSearchPageState extends State<ProductSearchPage> {
                       },
                     ).animate().fadeIn(duration: 500.ms, curve: Curves.easeInOut).slide(duration: 500.ms, curve: Curves.easeInOut),
                     onTap: () {
-                      // Navegar a la página de detalles del producto
                       Navigator.push(
                         context,
                         MaterialPageRoute(
                           builder: (context) => ProductDetailScreen(
                             product: product,
-                            cart: widget.cart, // Pasa el carrito actual
+                            cart: widget.cart,
                           ),
                         ),
                       );
