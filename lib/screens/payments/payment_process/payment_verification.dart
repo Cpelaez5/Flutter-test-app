@@ -133,9 +133,9 @@ class _PaymentVerificationScreenState extends State<PaymentVerificationScreen> {
             ),
             TextButton(
               onPressed: () {
-                // Navegar a la pantalla de confirmación de pago y borrar el historial
                 Navigator.of(context).pop(); // Cerrar el diálogo
-                Navigator.pushAndRemoveUntil(
+                
+                Navigator.pushAndRemoveUntil( // Navegar a la pantalla de confirmación de pago y borrar el historial
                   context,
                   MaterialPageRoute(
                     builder: (context) => PaymentConfirmationScreen(

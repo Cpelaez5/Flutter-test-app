@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../models/product.dart';
-import 'mobile_payment/mobile_payment_info.dart';
+import 'payment_process/mobile_payment_info.dart';
 // Asegúrate de que la ruta sea correcta
 
 class PaymentScreen extends StatefulWidget {
@@ -32,8 +32,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
             SizedBox(height: 20),
             _buildPaymentMethodTitle(),
             _buildPaymentMethodGrid(),
-            if (selectedPaymentMethod == 'transferencia') _buildReferenceNumberField(),
-            SizedBox(height: 20),
             _buildConfirmButton(),
           ],
         ),

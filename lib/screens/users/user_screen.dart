@@ -54,6 +54,9 @@ class UserScreenState extends State<UserScreen> {
                   ),
               );// Navegar a la pantalla de gestión de usuarios
             }),
+            buildSquareButton('Mi Billetera', Icons.wallet, () {
+              // Navegar a la pantalla de reportes
+            }),
             buildSquareButton('Mis Datos', Icons.person, () {
               Navigator.pushNamed(context, '/profile'); // Navegar a la pantalla de pedidos
             }),

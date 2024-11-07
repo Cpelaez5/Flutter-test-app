@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../services/auth/auth_service.dart';
+import '../../widgets/qr_scanner.dart';
 import '../../widgets/square_button.dart';
 
 class AdminScreen extends StatefulWidget {
@@ -41,17 +42,19 @@ class _AdminScreenState extends State<AdminScreen> {
           crossAxisSpacing: 16.0,
           mainAxisSpacing: 16.0,
           children: [
+            buildSquareButton('Escanear QR', Icons.qr_code, () {
+                  Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => QRScanner(),
+                ),
+              );
+            }),
             buildSquareButton('Ver Pedidos', Icons.list, () {
               Navigator.pushNamed(context, '/orders'); // Navegar a la pantalla de pedidos
             }),
-            buildSquareButton('Gestión de Usuarios', Icons.people, () {
+            buildSquareButton('Usuarios', Icons.people, () {
               // Navegar a la pantalla de gestión de usuarios
-            }),
-            buildSquareButton('Reportes', Icons.report, () {
-              // Navegar a la pantalla de reportes
-            }),
-            buildSquareButton('Configuraciones', Icons.settings, () {
-              // Navegar a la pantalla de configuraciones
             }),
           ],
         ),

@@ -75,9 +75,11 @@ class _AuthScreenState extends State<AuthScreen> {
 
       _showSnackBar(message);
     } finally {
-      setState(() {
-        _isLoading = false;
-      });
+      if (mounted) { // Verifica si el widget aún está montado
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -108,103 +110,102 @@ class _AuthScreenState extends State<AuthScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return PopScope(
-      canPop:false,
-      onPopInvokedWithResult:(didPop, result) => {
-        SystemNavigator.pop(),
-        false
+    return WillPopScope(
+      onWillPop: () async {
+        return false; // Evitar que el usuario regrese a la pantalla anterior
       },
-    child: Scaffold(
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Colors.brown[300]!, Colors.brown[100]!],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
+      child: Scaffold(
+        body: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Colors.brown[300]!, Colors.brown[100]!],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
           ),
-        ),
-        child: Center(
-          child: Padding(
-            padding: const EdgeInsets.all(20.0),
-            child: SingleChildScrollView(
-              child: Card(
-                elevation: 8,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(15),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(20.0),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        'Iniciar sesión',
-                        style: TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black,
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.all(20.0),
+              child: SingleChildScrollView(
+                child: Card(
+                  elevation: 8,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(15),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(20.0),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          'Iniciar sesión',
+                          style: TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black,
+                          ),
                         ),
-                      ),
-                                          if (widget.verificationMessage != null) // Mostrar el mensaje de verificación si existe
-                        Padding(
-                          padding: const EdgeInsets.only(top: 10.0, bottom: 20.0),
+                        if (widget.verificationMessage != null) // Mostrar el mensaje de verificación si existe
+                          Padding(
+                            padding: const EdgeInsets.only(top: 10.0, bottom: 20.0),
+                            child: Text(
+                              widget.verificationMessage!,
+                              style: TextStyle(color: Colors.red, fontSize: 16),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                        SizedBox(height: 20),
+                        TextFormField(
+                          controller: _emailController,
+                          decoration: InputDecoration(
+                            labelText: 'Correo electrónico',
+                            prefixIcon: Icon(Icons.email),
+                            errorText: _emailError ? 'Campo requerido' : null,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                        ),
+                        SizedBox(height: 10),
+                        TextFormField(
+                          controller: _passwordController,
+                          obscureText: true,
+                          decoration: InputDecoration(
+                            labelText: 'Contraseña',
+                            prefixIcon: Icon(Icons.lock),
+                            errorText: _passwordError ? 'Campo requerido' : null,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                        ),
+                        SizedBox(height: 20),
+                        ElevatedButton(
+                          onPressed: _isLoading ? null : _submit, // Deshabilitar el botón si está cargando
+                          style: ElevatedButton.styleFrom(
+                            foregroundColor: Colors.white,
+                            backgroundColor: Colors.brown[600],
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                          child: _isLoading
+                              ? CircularProgressIndicator() // Mostrar indicador de carga
+                              : Text('Iniciar sesión'),
+                        ),
+                        TextButton(
+                          onPressed: _navigateToRegister, // Navegar directamente a la pantalla de registro
                           child: Text(
-                            widget.verificationMessage!,
-                            style: TextStyle(color: Colors.red, fontSize: 16),
-                            textAlign: TextAlign.center,
+                            '¿No tienes una cuenta? Crear cuenta',
+                            style: TextStyle(color: Colors.brown),
                           ),
                         ),
-                      SizedBox(height: 20),
-                      TextFormField(
-                        controller: _emailController,
-                        decoration: InputDecoration(
-                          labelText: 'Correo electrónico',
-                          prefixIcon: Icon(Icons.email),
-                          errorText: _emailError ? 'Campo requerido' : null,
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
+                        TextButton(
+                          onPressed: _navigateToResetPassword,
+                          child: Text('Olvidé mi contraseña', style: TextStyle(color: Colors.brown)),
                         ),
-                      ),
-                      SizedBox(height: 10),
-                      TextFormField(
-                        controller: _passwordController,
-                        obscureText: true,
-                        decoration: InputDecoration(
-                          labelText: 'Contraseña',
-                          prefixIcon: Icon(Icons.lock),
-                          errorText: _passwordError ? 'Campo requerido' : null,
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                        ),
-                      ),
-                      SizedBox(height: 20),
-                      ElevatedButton(
-                        onPressed: _isLoading ? null : _submit, // Deshabilitar el botón si está cargando
-                        style: ElevatedButton.styleFrom(
-                          foregroundColor: Colors.white,
-                          backgroundColor: Colors.brown[600],
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                        ),
-                        child: _isLoading
-                            ? CircularProgressIndicator() // Mostrar indicador de carga
-                            : Text('Iniciar sesión'),
-                      ),
-                      TextButton(
-                        onPressed: _navigateToRegister, // Navegar directamente a la pantalla de registro
-                        child: Text(
-                          '¿No tienes una cuenta? Crear cuenta',
-                          style: TextStyle(color: Colors.brown),
-                        ),
-                      ),
-                      TextButton(
-                        onPressed: _navigateToResetPassword,
-                        child: Text('Olvidé mi contraseña', style: TextStyle(color: Colors.brown)),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -212,8 +213,6 @@ class _AuthScreenState extends State<AuthScreen> {
           ),
         ),
       ),
-    ),
     );
-
   }
-} 
+}

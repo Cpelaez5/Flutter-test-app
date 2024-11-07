@@ -7,7 +7,9 @@ import '../../services/notification_service.dart';
 import '../../services/users/get_user_role.dart';
 import '../../services/payments/update_payment_status.dart';
 import 'package:collection/collection.dart'; // Importar la biblioteca collection
-import '../../widgets/image_viewer.dart'; // Asegúrate de que esta ruta sea correcta
+import '../../widgets/qr_scanner.dart';
+import '../../widgets/image_viewer.dart';
+import 'qr_code_display_screen.dart'; // Asegúrate de que esta ruta sea correcta
 
 class PaymentDetailScreen extends StatefulWidget {
   final Payment payment;
@@ -23,6 +25,7 @@ class _PaymentDetailScreenState extends State<PaymentDetailScreen> {
   List<Product> allProducts = []; // Lista para almacenar todos los productos
   bool isLoading = true; // Variable para manejar el estado de carga
   String? imageUrl; // Variable para almacenar la URL de la imagen
+  String? token; // Declarar la variable token
   final GlobalKey<ScaffoldMessengerState> _scaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
 
   @override
@@ -35,10 +38,11 @@ class _PaymentDetailScreenState extends State<PaymentDetailScreen> {
       });
     });
     _fetchPaymentImageUrl(); // Llamar a la función para obtener la URL de la imagen
+    _fetchToken(); // Llamar a la función para obtener el token
   }
 
   Future<void> _fetchUserRole() async {
-    User? currentUser  = FirebaseAuth.instance.currentUser ;
+    User? currentUser   = FirebaseAuth.instance.currentUser ;
     if (currentUser  != null) {
       String role = await getUserRole(currentUser .uid);
       if (mounted) {
@@ -46,6 +50,24 @@ class _PaymentDetailScreenState extends State<PaymentDetailScreen> {
           userRole = role;
         });
       }
+    }
+  }
+
+  Future<void> _fetchToken() async {
+    try {
+      DocumentSnapshot paymentDoc = await FirebaseFirestore.instance
+          .collection('payments')
+          .doc(widget.payment.id)
+          .get();
+
+      if (paymentDoc.exists) {
+        setState(() {
+          // Asegúrate de hacer un cast adecuado
+          token = (paymentDoc.data() as Map<String, dynamic>)['token']; // Asegúrate de que 'token' existe en tu documento
+        });
+      }
+    } catch (e) {
+      print("Error al obtener el token: $e");
     }
   }
 
@@ -88,7 +110,7 @@ class _PaymentDetailScreenState extends State<PaymentDetailScreen> {
           content: Text('¿Estás seguro de que deseas finalizar el pago?'),
           actions: <Widget>[
             TextButton(
-              onPressed: () {
+ onPressed: () {
                 Navigator.of(context).pop(); // Cierra el diálogo
               },
               child: Text('Cancelar'),
@@ -191,41 +213,91 @@ class _PaymentDetailScreenState extends State<PaymentDetailScreen> {
     ),
     child: Padding(
       padding: const EdgeInsets.all(16.0),
-      child: Stack( // Usamos Stack para superponer el botón
+      child: Column( // Cambiar Stack a Column
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          Text(
+            ' Información del Pago',
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 12),
+          Text('Fecha del pago: ${payment.paymentDate}'),
+          Text('Referencia: ${payment.referenceNumber}'),
+          Text('Monto: ${payment.paymentAmount} Bs.'),
+          Text('Estado: ${payment.paymentStatus}'),
+          Text('Banco: ${payment.selectedBank}'),
+          Text('Usuario: ${payment.id}'),
+          Text('Registrado: ${paymentDateTime.day}/${paymentDateTime.month}/${paymentDateTime.year} ${paymentDateTime.hour}:${paymentDateTime.minute}'),
+          if (payment.paymentMethod == 'pago_movil')
+            Text('Teléfono: ${payment.phoneNumber}'),
+          const SizedBox(height: 16), // Espacio entre la información y los botones
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end, // Alinear los botones a la derecha
             children: [
-              Text(
-                ' Información del Pago',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 12),
-              Text('Fecha del pago: ${payment.paymentDate}'),
-              Text('Referencia: ${payment.referenceNumber}'),
-              Text('Monto: ${payment.paymentAmount} Bs.'),
-              Text('Estado: ${payment.paymentStatus}'),
-              Text('Banco: ${payment.selectedBank}'),
-              Text('Usuario: ${payment.id}'),
-              Text('Registrado: ${paymentDateTime.day}/${paymentDateTime.month}/${paymentDateTime.year} ${paymentDateTime.hour}:${paymentDateTime.minute}'),
-              if (payment.paymentMethod == 'pago_movil')
-                Text('Teléfono: ${payment.phoneNumber}'),
+              if (imageUrl != null) // Mostrar el botón solo si imageUrl no es nulo
+                IconButton(
+                  tooltip: 'Ver comprobante',
+                  icon: Icon(Icons.image, size: 30),
+                  onPressed: _showImageDialog,
+                ),
+              if (token != null) // Mostrar el botón QR solo si el rol es cliente y el token no es nulo
+                IconButton(
+                  tooltip: 'Mostrar QR',
+                  icon: Icon(Icons.qr_code, size: 30),
+                  onPressed: () {
+                    if (userRole == 'administrador') {
+                      QRScanner();
+                    }else{
+                      _showQrConfirmationDialog();
+                    }
+                    
+                  },
+                ),
             ],
           ),
-          if (imageUrl != null) // Mostrar el botón solo si imageUrl no es nulo
-            Align(
-              alignment: Alignment.bottomRight,
-              child: IconButton(
-                tooltip: 'Ver comprobante',
-                icon: Icon(Icons.image, size: 30),
-                onPressed: _showImageDialog,
-              ),
-            ),
         ],
       ),
     ),
   );
 }
+
+  void _showQrConfirmationDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Confirmación de QR'),
+          content: Text('No comparta su código QR con nadie más. ¿Desea mostrar su código QR?'),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Cierra el diálogo
+              },
+              child: Text('Cancelar'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Cierra el diálogo
+                _showQrCode(token!); // Llama a la función para mostrar el código QR
+              },
+              child: Text('Mostrar QR'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showQrCode(String token) {
+    // Aquí llamas a la función que generará y mostrará el código QR
+    // Asegúrate de implementar esta función en tu archivo de generación de QR
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => QrCodeDisplayScreen(token: token), // Asegúrate de tener esta pantalla
+      ),
+    );
+  }
 
   Widget _buildProductsList(List<dynamic> productDataList) {
     if (productDataList.isEmpty) {
