@@ -47,7 +47,6 @@ class AuthService with ChangeNotifier {
       idCard: idCard,
       name: name,
       phone: phone,
-      address: address,
       email: email,
       role: 'cliente', // Asignar rol por defecto
     );

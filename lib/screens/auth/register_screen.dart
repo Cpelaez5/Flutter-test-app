@@ -17,7 +17,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
-  final TextEditingController _addressController = TextEditingController();
 
   bool _isLoading = false;
 
@@ -28,7 +27,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
     String password = _passwordController.text.trim();
     String confirmPassword = _confirmPasswordController.text.trim();
     String phone = _phoneController.text.trim();
-    String address = _addressController.text.trim();
 
     if (password != confirmPassword) {
       _showErrorMessage('Las contraseñas no coinciden.');
@@ -61,7 +59,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
       if (user != null) {
         // Guardar el usuario en Firestore
-        await _saveUserToFirestore(user.uid, idCard, name, email, phone, address);
+        await _saveUserToFirestore(user.uid, idCard, name, email, phone);
 
         // Enviar correo de verificación
         await user.sendEmailVerification();
@@ -83,13 +81,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
     }
   }
 
-  Future<void> _saveUserToFirestore(String uid, String idCard, String name, String email, String phone, String address) async {
+  Future<void> _saveUserToFirestore(String uid, String idCard, String name, String email, String phone) async {
     await FirebaseFirestore.instance.collection('users').doc(uid).set({
       'idCard': idCard,
       'name': name,
       'email': email,
       'phone': phone,
-      'address': address,
       'role': 'cliente', // cliente por defecto
     });
   }
@@ -209,12 +206,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           controller: _phoneController,
                           label: 'Teléfono',
                           icon: Icons.phone,
-                        ),
-                        SizedBox(height: 10),
-                        _buildTextField(
-                          controller: _addressController,
-                          label: 'Dirección',
-                          icon: Icons.home,
                         ),
                         SizedBox(height: 20),
                         ElevatedButton(

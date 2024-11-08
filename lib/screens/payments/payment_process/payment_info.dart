@@ -6,21 +6,24 @@ import 'package:intl/intl.dart'; // Importar la biblioteca intl
 import '../../../widgets/custom_dialog.dart';
 import 'phone_verification.dart';
 
-class MobilePaymentInfoScreen extends StatefulWidget {
+class PaymentInfoScreen extends StatefulWidget {
   final double totalAmount;
-  final List<Map<String, dynamic>> products;  
+  final String? paymentMethod; //todavia sin uso
+  final List<Map<String, dynamic>> products;
+  
 
-  const MobilePaymentInfoScreen({
+  const PaymentInfoScreen({
     super.key,
     required this.totalAmount,
     required this.products,
+    required this.paymentMethod, //todavia sin uso
   });
 
   @override
-  _MobilePaymentInfoScreenState createState() => _MobilePaymentInfoScreenState();
+  _PaymentInfoScreenState createState() => _PaymentInfoScreenState();
 }
 
-class _MobilePaymentInfoScreenState extends State<MobilePaymentInfoScreen> {
+class _PaymentInfoScreenState extends State<PaymentInfoScreen> {
   String? bank;
   String? phone;
   String? rif;

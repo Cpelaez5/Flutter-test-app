@@ -4,7 +4,6 @@ class UserModel {
   final String name;
   final String email;
   final String phone;
-  final String address;
   final String role;
 
   UserModel({
@@ -13,7 +12,6 @@ class UserModel {
     required this.name,
     required this.email,
     required this.phone,
-    required this.address,
     required this.role,
   });
 
@@ -24,7 +22,6 @@ class UserModel {
       name: data['name'] as String? ?? '',
       email: data['email'] as String? ?? '',
       phone: data['phone'] as String? ?? '',
-      address: data['address'] as String? ?? '',
       role: data['role'] as String? ?? 'cliente',
     );
   }
@@ -36,7 +33,6 @@ class UserModel {
       'name': name,
       'email': email,
       'phone': phone,
-      'address': address,
       'role': role,
     };
   }
