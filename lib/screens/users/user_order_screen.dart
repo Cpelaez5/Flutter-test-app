@@ -87,6 +87,8 @@ class UserOrdersScreen extends StatelessWidget {
   }
 
   void _navigateToOrderDetail(BuildContext context, Payment order) {
+    print(order);
+    print(context);
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (context) => PaymentDetailScreen(payment: order),

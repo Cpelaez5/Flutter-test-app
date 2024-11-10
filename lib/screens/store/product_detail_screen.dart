@@ -75,7 +75,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               const SizedBox(height: 8),
               // Mostrar el precio del producto
               Text(
-                '\$${widget.product.price.toStringAsFixed(2)}',
+                'Bs. ${widget.product.price.toStringAsFixed(2)}',
                 style: const TextStyle(fontSize: 20, color: Colors.green, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8),
@@ -111,7 +111,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               const SizedBox(height: 16),
               // Mostrar subtotal
               Text(
-                'Subtotal: \$${(widget.product.price * quantity).toStringAsFixed(2)}',
+                'Subtotal: Bs. ${(widget.product.price * quantity).toStringAsFixed(2)}',
                 style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold), // Corrección aquí
               ),
               const SizedBox(height: 16),

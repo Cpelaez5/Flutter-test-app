@@ -146,7 +146,7 @@ class ProductSearchPageState extends State<ProductSearchPage> {
                           overflow: TextOverflow.ellipsis,
                         ).animate().fadeIn(duration: 500.ms, curve: Curves.easeInOut).slide(duration: 500.ms, curve: Curves.easeInOut),
                         Text(
-                          'Precio: \$${product.price}',
+                          'Precio: Bs. ${(product.price).toStringAsFixed(2)}',
                           style: TextStyle(
                             color: Colors.grey,
                             fontSize: 12,

@@ -32,7 +32,6 @@ class PaymentConfirmationScreen extends StatefulWidget {
 }
 
 class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
-  bool isCaptureUploaded = false;
   late String paymentDate;
   bool isLoading = true; // Cambiar a true para mostrar el indicador de carga inicialmente
   bool isPaymentSuccessful = false;
@@ -53,10 +52,9 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
       'phoneNumber': widget.confirmedPhone,
       'paymentDate': paymentDate,
       'selectedBank': widget.selectedBank,
-      'paymentAmount': widget.enteredAmount.toString(),
+      'paymentAmount': widget.enteredAmount.toStringAsFixed(2),
       'paymentStatus': 'pending',
       'paymentMethod': 'pago_movil',
-      'isCaptureUploaded': isCaptureUploaded,
       'timestamp': FieldValue.serverTimestamp(),
       'uid': FirebaseAuth.instance.currentUser !.uid,
       'token': null,
@@ -132,7 +130,6 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
       // Actualizar el estado con la URL de la imagen
       setState(() {
         imageUrl = downloadUrl;
-        isCaptureUploaded = true; // Marcar que la captura ha sido subida
       });
 
       // Actualizar la URL en Firestore

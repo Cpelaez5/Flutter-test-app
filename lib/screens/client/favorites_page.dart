@@ -29,7 +29,7 @@ class FavoritesPage extends StatelessWidget {
                       .animate()
                       .fadeIn(duration: 500.ms, curve: Curves.easeInOut)
                       .slide(duration: 500.ms, curve: Curves.easeInOut),
-                  subtitle: Text('Precio: \$${product.price}')
+                  subtitle: Text('Precio: Bs. ${(product.price).toStringAsFixed(2)}')
                       .animate()
                       .fadeIn(duration: 500.ms, curve: Curves.easeInOut)
                       .slide(duration: 500.ms, curve: Curves.easeInOut),

@@ -1,8 +1,11 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart'; // Asegúrate de importar Firestore
 import 'package:timeago/timeago.dart' as timeago;
 import '../../models/order_model.dart';
+import 'show_qr.dart';
 
-class PaymentCard extends StatelessWidget {
+class PaymentCard extends StatefulWidget {
   final Payment payment;
   final Function onTap;
 
@@ -13,22 +16,55 @@ class PaymentCard extends StatelessWidget {
   });
 
   @override
+  _PaymentCardState createState() => _PaymentCardState();
+}
+
+class _PaymentCardState extends State<PaymentCard> {
+  String userRole = ''; // Variable para almacenar el rol del usuario
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchUserRole();
+  }
+
+  Future<void> _fetchUserRole() async {
+    // Obtén el uid del usuario actual (esto puede variar según tu implementación)
+    String uid = FirebaseAuth.instance.currentUser ?.uid ?? '';
+
+    try {
+      DocumentSnapshot userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(uid)
+          .get();
+
+      if (userDoc.exists) {
+        setState(() {
+          userRole = (userDoc.data() as Map<String, dynamic>)['role'] ?? '';
+        });
+      }
+    } catch (e) {
+      print("Error al obtener el rol del usuario: $e");
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final timeAgo = timeago.format(payment.timestamp, locale: 'es');
-    final paymentStatus = _getPaymentStatus(payment.paymentStatus);
-    final paymentDetails = _getPaymentDetails(payment);
+    final timeAgo = timeago.format(widget.payment.timestamp, locale: 'es');
+    final paymentStatus = _getPaymentStatus(widget.payment.paymentStatus);
+    final paymentDetails = _getPaymentDetails(widget.payment);
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       elevation: 4,
       color: paymentStatus.cardColor,
       child: InkWell(
-        onTap: () => onTap(),
+        onTap: () => widget.onTap(),
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Row(
             children: [
-              Icon(paymentDetails.icon, color: paymentDetails.textColor),
+              Icon(paymentDetails.icon, color: paymentDetails.textColor, size: 32),
               const SizedBox(width: 16), // Espaciado entre icono y texto
               Expanded(
                 child: Column(
@@ -41,22 +77,45 @@ class PaymentCard extends StatelessWidget {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    Text(
-                      'Referencia: ${payment.referenceNumber}',
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
+                    if (widget.payment.referenceNumber != null) // Mostrar solo si no es nulo
+                      Text(
+                        'Referencia: ${widget.payment.referenceNumber != null && widget.payment.referenceNumber!.length >= 4 ? widget.payment.referenceNumber?.substring(widget.payment.referenceNumber!.length - 4) : widget.payment.referenceNumber ?? 'N/A'}',
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                    ),
                     const SizedBox(height: 8),
-                    Text('Monto: ${payment.paymentAmount} Bs.',
-                        style: const TextStyle(fontSize: 16)),
-                    Text(paymentStatus.paymentStatusString,
-                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                    if (widget.payment.paymentAmount.isNotEmpty) // Mostrar solo si no es nulo o vacío
+                      Text(
+                        widget.payment.paymentMethod == 'divisas' ? 'Monto: \$${widget.payment.paymentAmount}' : 'Monto: Bs. ${widget.payment.paymentAmount}',
+                          style: const TextStyle(fontSize: 16)),
+                    // Cambiar a Row para mostrar el estado y el icono en la misma línea
+                    Row(
+                      children: [
+                        Text(paymentStatus.paymentStatusString,
+                            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                        const SizedBox(width: 8),
+                        if (widget.payment.paymentStatus == 'checked') 
+                          Icon(Icons.check, color: Colors.cyanAccent, size: 20),
+                        if (widget.payment.paymentStatus == 'pending') 
+                          Icon(Icons.hourglass_bottom, color: Colors.deepOrange, size: 20),
+                        if (widget.payment.paymentStatus == 'finished') 
+                          Icon(Icons.check_circle_outline, color: Colors.lightGreen, size: 20),
+                      ],
+                    ),
                     Text(timeAgo, style: const TextStyle(fontSize: 14)),
                   ],
                 ),
               ),
+              if (widget.payment.token != null && userRole == 'cliente')
+                IconButton(
+                  icon: Icon(Icons.qr_code),
+                  onPressed: () {
+                    // Aquí llamas a la función que mostrará el QR
+                    showQrConfirmationDialog(context, widget.payment.token!);
+                  },
+                ),
             ],
           ),
         ),
@@ -71,13 +130,19 @@ class PaymentCard extends StatelessWidget {
     switch (paymentStatus) {
       case 'pending':
         paymentStatusString = 'Pendiente';
-        cardColor = Color.fromARGB(255, 245, 215, 110);
+        cardColor = Color.fromARGB(255, 255, 193, 7); // #FFC107;
         break;
 
       case 'finished':
         paymentStatusString = 'Finalizado';
         cardColor = Colors.greenAccent;
         break;
+
+      case 'checked':
+        paymentStatusString = 'Verificado';
+        cardColor = Color.fromARGB(255, 0, 188, 212); // #00BCD4;
+        break;
+        
       default:
         paymentStatusString = 'Desconocido';
         cardColor = Colors.grey;
@@ -112,6 +177,10 @@ class PaymentCard extends StatelessWidget {
         icon = Icons.payments_outlined;
         paymentMethodString = 'Bolívares';
         break;
+      case 'tarjeta':
+        icon = Icons.credit_card;
+        paymentMethodString = 'Tarjeta';
+        break;
       default:
         icon = Icons.error_outline_rounded;
         textColor = Colors.red; // Color para el texto de error
@@ -138,9 +207,10 @@ class PaymentDetails {
     required this.paymentMethodString,
   });
 }
+
 class PaymentStatus {
-    final String paymentStatusString;
-    final Color cardColor;
+  final String paymentStatusString;
+  final Color cardColor;
 
   PaymentStatus({
     required this.paymentStatusString,

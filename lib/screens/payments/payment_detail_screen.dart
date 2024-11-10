@@ -9,7 +9,7 @@ import '../../services/payments/update_payment_status.dart';
 import 'package:collection/collection.dart'; // Importar la biblioteca collection
 import '../../widgets/qr_scanner.dart';
 import '../../widgets/image_viewer.dart';
-import 'qr_code_display_screen.dart'; // Asegúrate de que esta ruta sea correcta
+import '../../widgets/show_qr.dart'; // Asegúrate de que esta ruta sea correcta
 
 class PaymentDetailScreen extends StatefulWidget {
   final Payment payment;
@@ -26,9 +26,13 @@ class _PaymentDetailScreenState extends State<PaymentDetailScreen> {
   bool isLoading = true; // Variable para manejar el estado de carga
   String? imageUrl; // Variable para almacenar la URL de la imagen
   String? token; // Declarar la variable token
+  String userName = '';
+  String userIdCard = '';
   final GlobalKey<ScaffoldMessengerState> _scaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
+  
+  
 
-  @override
+   @override
   void initState() {
     super.initState();
     _fetchUserRole();
@@ -39,8 +43,9 @@ class _PaymentDetailScreenState extends State<PaymentDetailScreen> {
     });
     _fetchPaymentImageUrl(); // Llamar a la función para obtener la URL de la imagen
     _fetchToken(); // Llamar a la función para obtener el token
+    _fetchUserData(); // Cargar los datos del usuario
   }
-
+  
   Future<void> _fetchUserRole() async {
     User? currentUser   = FirebaseAuth.instance.currentUser ;
     if (currentUser  != null) {
@@ -50,6 +55,31 @@ class _PaymentDetailScreenState extends State<PaymentDetailScreen> {
           userRole = role;
         });
       }
+    }
+  }
+  Future<void> _fetchUserData() async {
+    try {
+      // Obtén el uid directamente del documento de pago
+      String uid = (await FirebaseFirestore.instance
+          .collection('payments')
+          .doc(widget.payment.id)
+          .get())
+          .data()!['uid'];
+
+      // Busca el usuario en la colección 'users'
+      DocumentSnapshot userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(uid)
+          .get();
+
+      if (userDoc.exists) {
+        setState(() {
+          userName = (userDoc.data() as Map<String, dynamic>)['name'] ?? 'Nombre no disponible';
+          userIdCard = (userDoc.data() as Map<String, dynamic>)['idCard'] ?? 'ID no disponible';
+        });
+      }
+    } catch (e) {
+      print("Error al obtener los datos del usuario: $e");
     }
   }
 
@@ -102,62 +132,74 @@ class _PaymentDetailScreenState extends State<PaymentDetailScreen> {
   }
 
   void _showConfirmationDialog() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Confirmar'),
-          content: Text('¿Estás seguro de que deseas finalizar el pago?'),
-          actions: <Widget>[
-            TextButton(
- onPressed: () {
-                Navigator.of(context).pop(); // Cierra el diálogo
-              },
-              child: Text('Cancelar'),
-            ),
-            TextButton(
-              onPressed: () async {
-                // Cierra el diálogo inmediatamente
-                Navigator.of(context).pop();
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: Text('Confirmar'),
+        content: Text('¿Estás seguro de que deseas finalizar el pago?'),
+        actions: <Widget>[
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop(); // Cierra el diálogo
+            },
+            child: Text('Cancelar'),
+          ),
+          TextButton(
+            onPressed: () async {
+              // Cierra el diálogo inmediatamente
+              Navigator.of(context).pop();
 
-                try {
-                  // Obtén el uid directamente del documento de pago
-                  String uid = (await FirebaseFirestore.instance
-                      .collection('payments')
-                      .doc(widget.payment.id)
-                      .get())
-                      .data()!['uid'];
+              try {
+                // Obtén el uid directamente del documento de pago
+                String uid = (await FirebaseFirestore.instance
+                    .collection('payments')
+                    .doc(widget.payment.id)
+                    .get())
+                    .data()!['uid'];
 
-                  // Actualiza el estado del pago
-                  await updatePaymentStatus(widget.payment.id, 'finished');
-                  // Envía la notificación usando el uid obtenido
-                  await NotificationService.sendNotification(
-                    'Pago verificado',
-                    'Su pago de Bs. ${widget.payment.paymentAmount}0 de referencia ${widget.payment.referenceNumber} ha sido verificado exitosamente',
-                    null,
-                    uid,
-                  );
+                // Busca el usuario en la colección 'users'
+                DocumentSnapshot userDoc = await FirebaseFirestore.instance
+                    .collection('users')
+                    .doc(uid)
+                    .get();
 
-                  // Muestra un mensaje de éxito
-                  if (mounted) {
-                    _scaffoldMessengerKey.currentState?.showSnackBar(SnackBar(content: Text('Pago marcado como finalizado')));
-                  }
-                } catch (e) {
-                  // Muestra un mensaje de error
-                  if (mounted) {
-                    _scaffoldMessengerKey.currentState?.showSnackBar(
-                      SnackBar(content: Text('Error al marcar el pago: $e')),
-                    );
-                  }
+                if (userDoc.exists) {
+                  userName = (userDoc.data() as Map<String, dynamic>)['name'] ?? 'Nombre no disponible';
+                  userIdCard = (userDoc.data() as Map<String, dynamic>)['idCard'] ?? 'ID no disponible';
                 }
-              },
-              child: Text('Confirmar'),
-            ),
-          ],
-        );
-      },
-    );
-  }
+
+                // Actualiza el estado del pago
+                await updatePaymentStatus(widget.payment.id, 'finished');
+
+                // Envía la notificación usando el uid obtenido
+                await NotificationService.sendNotification(
+                  'Pago verificado',
+                  'Su pago de Bs. ${widget.payment.paymentAmount} de referencia ${widget.payment.referenceNumber} ha sido verificado exitosamente.',
+                  null,
+                  uid,
+                );
+
+                // Muestra un mensaje de éxito
+                if (mounted) {
+                  _scaffoldMessengerKey.currentState?.showSnackBar(SnackBar(content: Text('Pago marcado como finalizado')));
+                }
+              } catch (e) {
+                // Muestra un mensaje de error
+                if (mounted) {
+                  _scaffoldMessengerKey.currentState?.showSnackBar(
+                    SnackBar(content: Text('Error al marcar el pago: $e')),
+                  );
+                }
+              }
+            },
+            child: Text('Confirmar'),
+          ),
+        ],
+      );
+    },
+  );
+}
 
   void _showImageDialog() {
     if (imageUrl != null) {
@@ -170,6 +212,7 @@ class _PaymentDetailScreenState extends State<PaymentDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    
     return ScaffoldMessenger(
       key: _scaffoldMessengerKey,
       child: Scaffold(
@@ -213,7 +256,7 @@ class _PaymentDetailScreenState extends State<PaymentDetailScreen> {
     ),
     child: Padding(
       padding: const EdgeInsets.all(16.0),
-      child: Column( // Cambiar Stack a Column
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
@@ -221,14 +264,28 @@ class _PaymentDetailScreenState extends State<PaymentDetailScreen> {
             style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 12),
-          Text('Fecha del pago: ${payment.paymentDate}'),
-          Text('Referencia: ${payment.referenceNumber}'),
-          Text('Monto: ${payment.paymentAmount} Bs.'),
-          Text('Estado: ${payment.paymentStatus}'),
-          Text('Banco: ${payment.selectedBank}'),
-          Text('Usuario: ${payment.id}'),
+          if (payment.paymentDate != null) 
+            Text('Fecha del pago: ${payment.paymentDate}'),
+          if (payment.referenceNumber != null) 
+            Text('Referencia: ${payment.referenceNumber}'),
+          if (payment.paymentAmount.isNotEmpty) 
+            Text( 'Monto: ${payment.paymentMethod == 'divisas' ? '\$${payment.paymentAmount}' : 'Bs. ${payment.paymentAmount}'}',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.brown),
+            ),
+          if (payment.paymentStatus.isNotEmpty) 
+            Text(
+             'Estado: ${payment.paymentStatus}',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+          if (payment.selectedBank != null) 
+            Text('Banco: ${payment.selectedBank}'),
+          // Aquí puedes mostrar el nombre y el ID del usuario
+          if (userRole == 'administrador')
+          Text('Usuario: $userName'), // Muestra el nombre del usuario
+          if (userRole == 'administrador')
+          Text('ID: $userIdCard'), // Muestra el ID del usuario
           Text('Registrado: ${paymentDateTime.day}/${paymentDateTime.month}/${paymentDateTime.year} ${paymentDateTime.hour}:${paymentDateTime.minute}'),
-          if (payment.paymentMethod == 'pago_movil')
+          if (payment.paymentMethod == 'pago_movil' && payment.phoneNumber != null) 
             Text('Teléfono: ${payment.phoneNumber}'),
           const SizedBox(height: 16), // Espacio entre la información y los botones
           Row(
@@ -247,10 +304,9 @@ class _PaymentDetailScreenState extends State<PaymentDetailScreen> {
                   onPressed: () {
                     if (userRole == 'administrador') {
                       QRScanner();
-                    }else{
-                      _showQrConfirmationDialog();
+                    } else {
+                      showQrConfirmationDialog(context, token!);
                     }
-                    
                   },
                 ),
             ],
@@ -260,44 +316,6 @@ class _PaymentDetailScreenState extends State<PaymentDetailScreen> {
     ),
   );
 }
-
-  void _showQrConfirmationDialog() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Confirmación de QR'),
-          content: Text('No comparta su código QR con nadie más. ¿Desea mostrar su código QR?'),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop(); // Cierra el diálogo
-              },
-              child: Text('Cancelar'),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop(); // Cierra el diálogo
-                _showQrCode(token!); // Llama a la función para mostrar el código QR
-              },
-              child: Text('Mostrar QR'),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  void _showQrCode(String token) {
-    // Aquí llamas a la función que generará y mostrará el código QR
-    // Asegúrate de implementar esta función en tu archivo de generación de QR
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => QrCodeDisplayScreen(token: token), // Asegúrate de tener esta pantalla
-      ),
-    );
-  }
 
   Widget _buildProductsList(List<dynamic> productDataList) {
     if (productDataList.isEmpty) {
@@ -356,8 +374,13 @@ class _PaymentDetailScreenState extends State<PaymentDetailScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text('Cantidad: $productQuantity'),
-                    Text('Precio unitario: ${(productPrice).toStringAsFixed(2)} Bs.'), // Precio de Firebase
-                    Text('Subtotal: ${(subtotal).toStringAsFixed(2)} Bs.'), // Subtotal calculado
+                    Text(
+                      'Precio unitario: ${widget.payment.paymentMethod == 'divisas' ? '\$$productPrice' : 'Bs. ${productPrice.toStringAsFixed(2)}'}'
+                      ), // Precio de Firebase
+                    if (productQuantity > 1)
+                    Text(
+                      'Subtotal: ${widget.payment.paymentMethod == 'divisas' ? '\$${subtotal.toStringAsFixed(2)}' : 'Bs. ${subtotal.toStringAsFixed(2)}'}'
+                      ), // Subtotal calculado
                   ],
                 ),
               ),
@@ -373,7 +396,8 @@ class _PaymentDetailScreenState extends State<PaymentDetailScreen> {
           margin: const EdgeInsets.symmetric(vertical: 8),
           elevation: 2,
           child: ListTile(
-            title: Text('Total: ${total.toStringAsFixed(2)} Bs.'),
+            title:
+                Text('Total: ${widget.payment.paymentMethod == 'divisas' ? '\$${total.toStringAsFixed(2)}' : 'Bs. ${total.toStringAsFixed(2)}'}'),
             subtitle: Text('Monto total del pago'),
           ),
         ),

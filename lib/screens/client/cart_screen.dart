@@ -120,9 +120,9 @@ class _CartScreenState extends State<CartScreen> {
                                         style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                                       ),
                                       const SizedBox(height: 4),
-                                      Text('\$${product.price} x ${product.quantity}', style: TextStyle(color: Colors.grey[600])),
+                                      Text('Bs. ${product.price} x ${product.quantity}', style: TextStyle(color: Colors.grey[600])),
                                       const SizedBox(height: 4),
-                                      Text('Total: \$${totalProductPrice.toStringAsFixed(2)}', style: const TextStyle(fontWeight: FontWeight.bold)),
+                                      Text('Subtotal: Bs. ${totalProductPrice.toStringAsFixed(2)}', style: const TextStyle(fontWeight: FontWeight.bold)),
                                     ],
                                   ),
                                 ),
@@ -147,7 +147,7 @@ class _CartScreenState extends State<CartScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        'Total: \$${_totalAmount?.toStringAsFixed(2) ?? '0.00'}',
+                        'Total: Bs. ${_totalAmount?.toStringAsFixed(2) ?? '0.00'}',
                         style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                       ),
                       ElevatedButton(
@@ -159,7 +159,7 @@ class _CartScreenState extends State<CartScreen> {
                             borderRadius: BorderRadius.circular(10),
                           ),
                         ),
-                        child: const Text('Comprar', style: TextStyle(fontSize: 16)),
+                        child: const Text('Comprar', style: TextStyle(fontSize: 16, color: Colors.white)),
                       ),
                     ],
                   ),

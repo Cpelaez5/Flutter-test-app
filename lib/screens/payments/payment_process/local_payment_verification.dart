@@ -1,11 +1,14 @@
-import 'dart:math'; // Importa la librería para generar números aleatorios
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart'; // Asegúrate de importar Firebase Auth
+import '../../../models/order_model.dart';
 import '../../../models/product.dart';
 import '../../../services/notification_service.dart';
-import '../../../services/payments/update_payment_status.dart'; // Asegúrate de importar la función
+import '../../../services/payments/update_payment_status.dart';
+import '../../../utils/calculate_price.dart';
+
+import 'success_payment_detail_screen.dart'; // Asegúrate de importar la función
 
 class LocalPaymentVerificationScreen extends StatefulWidget {
   final double totalAmount;
@@ -107,21 +110,26 @@ class _LocalPaymentVerificationScreenState extends State<LocalPaymentVerificatio
       physics: NeverScrollableScrollPhysics(), // Desactiva el desplazamiento de la lista
       itemCount: widget.products.length,
       itemBuilder: (context, index) {
+        final product = widget.products[index];
+        final price = widget.paymentMethod == 'divisas'
+            ? (product.price / (widget.dolarPrice ?? 1)).toStringAsFixed(2)
+            : product.price.toStringAsFixed(2);
+
         return Card(
           margin: const EdgeInsets.symmetric(vertical: 8),
           elevation: 2,
           child: ListTile(
             leading: CachedNetworkImage(
-              imageUrl: widget.products[index].imageUrl,
+              imageUrl: product.imageUrl,
               width: 50,
               height: 50,
               fit: BoxFit.cover,
               placeholder: (context, url) => CircularProgressIndicator(),
-              errorWidget: (context, url, error) => Icon(Icons.error),
+              errorWidget : (context, url, error) => Icon(Icons.error),
             ),
-            title: Text(widget.products[index].name, style: TextStyle(fontWeight: FontWeight.bold)),
-            subtitle: Text('Precio: ${widget.paymentMethod == 'divisas' ? '\$' : 'Bs.'}${widget.products[index].price.toStringAsFixed(2)}'),
-            trailing: Text('Cantidad: ${widget.products[index].quantity}', style: TextStyle(color: Colors.grey)),
+            title: Text(product.name, style: TextStyle(fontWeight: FontWeight.bold)),
+            subtitle: Text('Precio: ${widget.paymentMethod == 'divisas' ? '\$$price' : 'Bs. $price'}', style: TextStyle(color: Colors.grey)),
+            trailing: Text('Cantidad: ${product.quantity}', style: TextStyle(color: Colors.grey)),
           ),
         );
       },
@@ -196,16 +204,16 @@ class _LocalPaymentVerificationScreenState extends State<LocalPaymentVerificatio
 
           // Crear el objeto de pago
           Map<String, dynamic> paymentData = {
-            'paymentAmount': widget.totalAmount,
+            'paymentAmount': widget.paymentMethod == 'divisas' ? (widget.totalAmount / (widget.dolarPrice ?? 1)).toStringAsFixed(2) : widget.totalAmount.toStringAsFixed(2),
             'products': widget.products.map((product) {
               return {
                 'productId': product.id,
                 'quantity': product.quantity,
-                'price': widget.paymentMethod == 'divisas' ? product.price : product.price * (widget.dolarPrice ?? 1),
+                'price': widget.paymentMethod == 'divisas' ? fixPrice(product.price / (widget.dolarPrice ?? 1)) : fixPrice(product.price),
               };
             }).toList(),
             'paymentMethod': widget.paymentMethod,
-            'uid': FirebaseAuth.instance.currentUser!.uid, // Agregar ID del usuario
+            'uid': FirebaseAuth.instance.currentUser !.uid, // Agregar ID del usuario
             'timestamp': FieldValue.serverTimestamp(),
             'referenceNumber': null, // Puedes asignar un valor si es necesario
             'phoneNumber': null, // Puedes asignar un valor si es necesario
@@ -224,32 +232,54 @@ class _LocalPaymentVerificationScreenState extends State<LocalPaymentVerificatio
             // Llamar a la función para actualizar el estado del pago y agregar el token
             await updatePaymentStatus(docRef.id, 'pending'); // Cambia 'Registrado' al estado que desees
 
+            // Enviar notificación a los administradores
+            await NotificationService.sendNotification(
+              'Nuevo Pedido Registrado',
+              'Un pedido local por ${widget.paymentMethod == 'divisas' ? '\$${(widget.totalAmount / (widget.dolarPrice ?? 1)).toStringAsFixed(2)}' : 'Bs.${widget.totalAmount}'} ha sido registrado',
+              'administrador',
+              null,
+            );
+
+            // Crear el objeto Payment a pasar a PaymentDetailScreen
+            Payment payment = Payment(
+              id: docRef.id,
+              referenceNumber: null,
+              phoneNumber: null,
+              paymentMethod: widget.paymentMethod,
+              selectedBank: null,
+              uid: FirebaseAuth.instance.currentUser !.uid,
+              timestamp: DateTime.now(),
+              paymentAmount: widget.totalAmount.toString(),
+              paymentStatus: 'pending',
+              paymentDate: null,
+              products: widget.products.map((product) {
+                return {
+                  'productId': product.id,
+                  'quantity': product.quantity,
+                  'price': product.price,
+                };
+              }).toList(), // Asegúrate de que esto sea un List<Map<String, dynamic>>
+              token: null,
+            );
+            print(payment.products);
+            // Navegar a PaymentDetailScreen
+            Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(builder: (context) => SuccessPaymentDetailScreen(
+                payment: payment,
+                dolarPrice: widget.dolarPrice,
+                )),
+              (Route<dynamic> route) => false, // Eliminar todas las rutas anteriores
+            );
+
           } catch (e) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text('Error al registrar el pedido: $e')),
             );
           } finally {
-              if (widget.paymentMethod != 'divisas') {
-                await NotificationService.sendNotification(
-                'Nuevo Pedido Registrado',
-                'Un pedido local por Bs.${widget.totalAmount} ha sido registrado',
-                'administrador',
-                null,
-              );
-            } else {
-               await NotificationService.sendNotification(
-                'Nuevo Pedido Registrado',
-                'Un pedido local por \$${widget.totalAmount*(widget.dolarPrice ?? 1)} ha sido registrado',
-                'administrador',
-                null,
-              );
-            }
-            // Enviar notificación a los administradores
-            
             setState(() {
               isLoading = false; // Finalizar carga
             });
-            
           }
         },
         style: ElevatedButton.styleFrom(

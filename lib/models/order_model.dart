@@ -4,9 +4,8 @@ class Payment {
   final String id; // ID del documento en Firestore
   final String? referenceNumber; // Hacerlo opcional
   final String? phoneNumber; // Hacerlo opcional
-  final String paymentMethod;
+  final String? paymentMethod;
   final String? selectedBank; // Hacerlo opcional
-  final bool isCaptureUploaded;
   final String uid;
   final DateTime timestamp;
   final String paymentAmount;
@@ -21,7 +20,6 @@ class Payment {
     this.phoneNumber,
     required this.paymentMethod,
     this.selectedBank,
-    required this.isCaptureUploaded,
     required this.uid,
     required this.timestamp, 
     required this.paymentAmount, 
@@ -32,34 +30,32 @@ class Payment {
   });
 
   factory Payment.fromFirestore(DocumentSnapshot doc) {
-  Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+    Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
 
-  DateTime parsedDate;
-  if (data['timestamp'] is Timestamp) {
-    parsedDate = (data['timestamp'] as Timestamp).toDate();
-  } else if (data['timestamp'] is String) {
-    parsedDate = _parseCustomDate(data['timestamp']);
-  } else {
-    parsedDate = DateTime.now(); // O puedes lanzar una excepción
+    DateTime parsedDate;
+    if (data['timestamp'] is Timestamp) {
+      parsedDate = (data['timestamp'] as Timestamp).toDate();
+    } else if (data['timestamp'] is String) {
+      parsedDate = _parseCustomDate(data['timestamp']);
+    } else {
+      parsedDate = DateTime.now(); // O puedes lanzar una excepción
+    }
+
+    return Payment(
+      id: doc.id, // Aquí obtienes el ID del documento
+      referenceNumber: data['referenceNumber'] as String?, // Asegúrate de que sea nullable
+      phoneNumber: data['phoneNumber'] as String?, // Asegúrate de que sea nullable
+      paymentMethod: data['paymentMethod'] ?? '', // Valor por defecto si es nulo
+      selectedBank: data['selectedBank'] as String?, // Asegúrate de que sea nullable
+      paymentAmount: (data['paymentAmount'] ?? 0).toString(), // Convertir a String
+      uid: data['uid'] ?? '', // Valor por defecto si es nulo
+      paymentStatus: data['paymentStatus'] ?? '', // Valor por defecto si es nulo
+      timestamp: parsedDate,
+      paymentDate: data['paymentDate'] as String?, // Asegúrate de que sea nullable
+      products: data['products'] ?? [], // Valor por defecto si es nulo
+      token: data['token'] as String?, // Asegúrate de que sea nullable
+    );
   }
-
-  return Payment(
-    id: doc.id, // Aquí obtienes el ID del documento
-    referenceNumber: data['referenceNumber'],
-    phoneNumber: data['phoneNumber'],
-    paymentMethod: data['paymentMethod'] ?? '',
-    selectedBank: data['selectedBank'],
-    // Asegúrate de convertir paymentAmount a String
-    paymentAmount: (data['paymentAmount'] ?? 0).toString(), // Convertir a String
-    isCaptureUploaded: data['isCaptureUploaded'] ?? false,
-    uid: data['uid'] ?? '',
-    paymentStatus: data['paymentStatus'] ?? '',
-    timestamp: parsedDate,
-    paymentDate: data['paymentDate'],
-    products: data['products'] ?? [],
-    token: data['token'],
-  );
-}
 
   static DateTime _parseCustomDate(String dateString) {
     if (dateString.contains('-')) {

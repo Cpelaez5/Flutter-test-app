@@ -141,7 +141,7 @@ class ProductCard extends StatelessWidget {
                         overflow: TextOverflow .ellipsis,
                       ),
                       Text(
-                        '\$ ${product.price.toStringAsFixed(2)}',
+                        'Bs. ${product.price.toStringAsFixed(2)}',
                         style: const TextStyle(color: Colors.green),
                       ),
                     ],
