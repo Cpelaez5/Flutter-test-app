@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../../services/auth/auth_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
