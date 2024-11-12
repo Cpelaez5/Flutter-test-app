@@ -56,6 +56,8 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
       'paymentStatus': 'pending',
       'paymentMethod': 'pago_movil',
       'timestamp': FieldValue.serverTimestamp(),
+      'checkedAt': null, // Inicializa checkedAt como null
+      'finishedAt': null, // Inicializa finishedAt como null
       'uid': FirebaseAuth.instance.currentUser !.uid,
       'token': null,
       'imageUrl': imageUrl,
@@ -78,6 +80,17 @@ class _PaymentConfirmationScreenState extends State<PaymentConfirmationScreen> {
     });
 
     try {
+       DocumentSnapshot lastOrderNumberDoc = await FirebaseFirestore.instance.collection('orderNumbers').doc('lastOrder').get();
+          int lastOrderNumber = (lastOrderNumberDoc.data() as Map<String, dynamic>)['lastOrderNumber'] ?? 0;
+
+          // Incrementar el número de pedido
+          int newOrderNumber = lastOrderNumber + 1;
+
+          // Actualizar el último número de pedido en Firestore
+          await FirebaseFirestore.instance.collection('orderNumbers').doc('lastOrder').update({'lastOrderNumber': newOrderNumber});
+
+          // Agregar el nuevo número de pedido a paymentData
+          paymentData['orderNumber'] = newOrderNumber;
       // Agregar el pago a Firestore y obtener el ID del documento
       DocumentReference docRef = await FirebaseFirestore.instance.collection('payments').add(paymentData);
       documentId = docRef.id; // Guardar el ID del documento

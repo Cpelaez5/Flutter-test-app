@@ -124,20 +124,20 @@ class _ReferenceNumberScreenState extends State<ReferenceNumberScreen> {
 
                 // Validar que el campo no esté vacío
                 if (referenceNumber.isEmpty) {
-                  ErrorDialog.show(context, 'Error', 'El número de referencia no puede estar vacío.');
+                  ErrorDialog.show(context, 'Error', 'El número de referencia no puede estar vacío.', null);
                   return;
                 }
 
                 // Validar que el número de referencia sea numérico y tenga la longitud correcta
                 if (!RegExp(r'^\d{12}$').hasMatch(referenceNumber)) {
-                  ErrorDialog.show(context, 'Error', 'El número de referencia debe ser numérico y tener 12 dígitos.');
+                  ErrorDialog.show(context, 'Error', 'El número de referencia debe ser numérico y tener 12 dígitos.', null);
                   return;
                 }
 
                 // Verificar si el número de referencia ya existe en Firestore
                 bool exists = await checkReferenceNumberExists(referenceNumber);
                 if (exists) {
-                  ErrorDialog.show(context, 'Error', 'El número de referencia ya ha sido registrado.');
+                  ErrorDialog.show(context, 'Error', 'El número de referencia ya ha sido registrado.', null);
                   return;
                 }
 

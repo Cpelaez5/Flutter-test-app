@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 class Payment {
   final String id; // ID del documento en Firestore
+  final int orderNumber;
   final String? referenceNumber; // Hacerlo opcional
   final String? phoneNumber; // Hacerlo opcional
   final String? paymentMethod;
@@ -12,21 +13,26 @@ class Payment {
   final String paymentStatus;
   final String? paymentDate; // Hacerlo opcional
   final String? token; // Hacerlo opcional
+  final DateTime? checkedAt; // Campo opcional
+  final DateTime? finishedAt; // Campo opcional
   final List<dynamic> products;
 
   Payment({
-    required this.id, // Agregar el ID en el constructor
+    required this.id,
+    required this.orderNumber,
     this.referenceNumber,
     this.phoneNumber,
     required this.paymentMethod,
     this.selectedBank,
     required this.uid,
-    required this.timestamp, 
-    required this.paymentAmount, 
-    required this.paymentStatus, 
-    this.paymentDate, 
+    required this.timestamp,
+    required this.paymentAmount,
+    required this.paymentStatus,
+    this.paymentDate,
     required this.products,
     this.token,
+    this.checkedAt,
+    this.finishedAt,
   });
 
   factory Payment.fromFirestore(DocumentSnapshot doc) {
@@ -41,19 +47,32 @@ class Payment {
       parsedDate = DateTime.now(); // O puedes lanzar una excepción
     }
 
+    DateTime? checkedAtDate;
+    if (data['checkedAt'] is Timestamp) {
+      checkedAtDate = (data['checkedAt'] as Timestamp).toDate();
+    }
+
+    DateTime? finishedAtDate;
+    if (data['finishedAt'] is Timestamp) {
+      finishedAtDate = (data['finishedAt'] as Timestamp).toDate();
+    }
+
     return Payment(
-      id: doc.id, // Aquí obtienes el ID del documento
-      referenceNumber: data['referenceNumber'] as String?, // Asegúrate de que sea nullable
-      phoneNumber: data['phoneNumber'] as String?, // Asegúrate de que sea nullable
-      paymentMethod: data['paymentMethod'] ?? '', // Valor por defecto si es nulo
-      selectedBank: data['selectedBank'] as String?, // Asegúrate de que sea nullable
-      paymentAmount: (data['paymentAmount'] ?? 0).toString(), // Convertir a String
-      uid: data['uid'] ?? '', // Valor por defecto si es nulo
-      paymentStatus: data['paymentStatus'] ?? '', // Valor por defecto si es nulo
+      id: doc.id,
+      orderNumber: data['orderNumber'] as int,
+      referenceNumber: data['referenceNumber'] as String?,
+      phoneNumber: data['phoneNumber'] as String?,
+      paymentMethod: data['paymentMethod'] ?? '',
+      selectedBank: data['selectedBank'] as String?,
+      paymentAmount: (data['paymentAmount'] ?? 0).toString(),
+      uid: data['uid'] ?? '',
+      paymentStatus: data['paymentStatus'] ?? '',
       timestamp: parsedDate,
-      paymentDate: data['paymentDate'] as String?, // Asegúrate de que sea nullable
-      products: data['products'] ?? [], // Valor por defecto si es nulo
-      token: data['token'] as String?, // Asegúrate de que sea nullable
+      paymentDate: data['paymentDate'] as String?,
+      products: data['products'] ?? [],
+      token: data['token'] as String?,
+      checkedAt: checkedAtDate, // Asignar el valor de checkedAt
+      finishedAt: finishedAtDate, // Asignar el valor de finishedAt
     );
   }
 

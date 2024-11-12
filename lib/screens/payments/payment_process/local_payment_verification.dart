@@ -113,7 +113,7 @@ class _LocalPaymentVerificationScreenState extends State<LocalPaymentVerificatio
         final product = widget.products[index];
         final price = widget.paymentMethod == 'divisas'
             ? (product.price / (widget.dolarPrice ?? 1)).toStringAsFixed(2)
-            : product.price.toStringAsFixed(2);
+            : product.price.toStringAsFixed(            2);
 
         return Card(
           margin: const EdgeInsets.symmetric(vertical: 8),
@@ -125,7 +125,7 @@ class _LocalPaymentVerificationScreenState extends State<LocalPaymentVerificatio
               height: 50,
               fit: BoxFit.cover,
               placeholder: (context, url) => CircularProgressIndicator(),
-              errorWidget : (context, url, error) => Icon(Icons.error),
+              errorWidget: (context, url, error) => Icon(Icons.error),
             ),
             title: Text(product.name, style: TextStyle(fontWeight: FontWeight.bold)),
             subtitle: Text('Precio: ${widget.paymentMethod == 'divisas' ? '\$$price' : 'Bs. $price'}', style: TextStyle(color: Colors.grey)),
@@ -194,103 +194,143 @@ class _LocalPaymentVerificationScreenState extends State<LocalPaymentVerificatio
   }
 
   Widget _buildConfirmButton(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-      child: ElevatedButton(
-        onPressed: () async {
-          setState(() {
-            isLoading = true; // Iniciar carga
-          });
+  return Padding(
+    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+    child: ElevatedButton(
+      onPressed: isLoading ? null : () async { // Deshabilitar el botón si isLoading es true
+        setState(() {
+          isLoading = true; // Iniciar carga
+        });
 
-          // Crear el objeto de pago
-          Map<String, dynamic> paymentData = {
-            'paymentAmount': widget.paymentMethod == 'divisas' ? (widget.totalAmount / (widget.dolarPrice ?? 1)).toStringAsFixed(2) : widget.totalAmount.toStringAsFixed(2),
-            'products': widget.products.map((product) {
+        // Mostrar el diálogo de carga
+        showDialog(
+          context: context,
+          barrierDismissible: false, // Evitar que se cierre al tocar fuera
+          builder: (context) {
+            return AlertDialog(
+              content: Row(
+                children: [
+                  CircularProgressIndicator(),
+                  SizedBox(width: 20),
+                  Text("Cargando..."),
+                ],
+              ),
+            );
+          },
+        );
+
+        // Crear el objeto de pago
+        Map<String, dynamic> paymentData = {
+          'paymentAmount': widget.paymentMethod == 'divisas' ? (widget.totalAmount / (widget.dolarPrice ?? 1)).toStringAsFixed(2) : widget.totalAmount.toStringAsFixed(2),
+          'products': widget.products.map((product) {
+            return {
+              'productId': product.id,
+              'quantity': product.quantity,
+              'price': widget.paymentMethod == 'divisas' ? fixPrice(product.price / (widget.dolarPrice ?? 1)) : fixPrice(product.price),
+            };
+          }).toList(),
+          'paymentMethod': widget.paymentMethod,
+          'uid': FirebaseAuth.instance.currentUser !.uid, // Agregar ID del usuario
+          'timestamp': FieldValue.serverTimestamp(),
+          'checkedAt': null, // Inicializa checkedAt como null
+          'finishedAt': null, // Inicializa finishedAt como null
+          'referenceNumber': null, // Puedes asignar un valor si es necesario
+          'phoneNumber': null, // Puedes asignar un valor si es necesario
+          'selectedBank': null, // Asignar null si no se usa
+          'paymentDate': null, // Asignar null si no se usa
+          'token': null, // Asignar null si no se usa
+        };
+
+        try {
+          // Obtener el último número de pedido
+          DocumentSnapshot lastOrderNumberDoc = await FirebaseFirestore.instance.collection('orderNumbers').doc('lastOrder').get();
+          int lastOrderNumber = (lastOrderNumberDoc.data() as Map<String, dynamic>)['lastOrderNumber'] ?? 0;
+
+          // Incrementar el número de pedido
+          int newOrderNumber = lastOrderNumber + 1;
+
+          // Actualizar el último número de pedido en Firestore
+          await FirebaseFirestore.instance.collection('orderNumbers').doc('lastOrder').update({'lastOrderNumber': newOrderNumber});
+
+          // Agregar el nuevo número de pedido a paymentData
+          paymentData['orderNumber'] = newOrderNumber;
+
+          // Guardar en Firestore
+          DocumentReference docRef = await FirebaseFirestore.instance.collection('payments').add(paymentData);
+          if (!mounted) return; // Verifica si el widget está montado
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Pedido registrado con éxito!')),
+          );
+
+          // Llamar a la función para actualizar el estado del pago y agregar el token
+          await updatePaymentStatus(docRef.id, 'pending', null);
+
+          // Enviar notificación a los administradores
+          await NotificationService.sendNotification(
+            'Nuevo Pedido Registrado',
+            'Un pedido local por ${widget.paymentMethod == 'divisas' ? '\$${(widget.totalAmount / (widget.dolarPrice ?? 1)).toStringAsFixed(2)}' : 'Bs.${widget.totalAmount}'} ha sido registrado',
+            'administrador',
+            null,
+          );
+
+          // Crear el objeto Payment a pasar a PaymentDetailScreen
+          Payment payment = Payment(
+            id: docRef.id,
+            orderNumber: newOrderNumber, // Asignar el nuevo número de pedido
+            referenceNumber: null,
+            phoneNumber: null,
+            paymentMethod: widget.paymentMethod,
+            selectedBank: null,
+            uid: FirebaseAuth.instance.currentUser !.uid,
+            timestamp: DateTime.now(),
+            paymentAmount: widget.totalAmount.toString(),
+            paymentStatus: 'pending',
+            paymentDate: null,
+            products: widget.products.map((product) {
               return {
                 'productId': product.id,
                 'quantity': product.quantity,
-                'price': widget.paymentMethod == 'divisas' ? fixPrice(product.price / (widget.dolarPrice ?? 1)) : fixPrice(product.price),
+                'price': product.price,
               };
-            }).toList(),
-            'paymentMethod': widget.paymentMethod,
-            'uid': FirebaseAuth.instance.currentUser !.uid, // Agregar ID del usuario
-            'timestamp': FieldValue.serverTimestamp(),
-            'referenceNumber': null, // Puedes asignar un valor si es necesario
-            'phoneNumber': null, // Puedes asignar un valor si es necesario
-            'selectedBank': null, // Asignar null si no se usa
-            'paymentDate': null, // Asignar null si no se usa
-            'token': null, // Asignar null si no se usa
-          };
+            }).toList(), // Asegúrate de que esto sea un List<Map<String, dynamic>>
+            token: null,
+          );
 
-          try {
-            // Guardar en Firestore
-            DocumentReference docRef = await FirebaseFirestore.instance.collection('payments').add(paymentData);
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Pedido registrado con éxito!')),
-            );
+          // Cerrar el diálogo de carga antes de navegar
+          Navigator.of(context).pop(); // Cerrar el diálogo de carga
 
-            // Llamar a la función para actualizar el estado del pago y agregar el token
-            await updatePaymentStatus(docRef.id, 'pending'); // Cambia 'Registrado' al estado que desees
+          // Navegar a PaymentDetailScreen
+          Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(builder: (context) => SuccessPaymentDetailScreen(
+              payment: payment,
+              dolarPrice: widget.dolarPrice,
+            )),
+            (Route<dynamic> route) => false, // Eliminar todas las rutas anteriores
+          );
 
-            // Enviar notificación a los administradores
-            await NotificationService.sendNotification(
-              'Nuevo Pedido Registrado',
-              'Un pedido local por ${widget.paymentMethod == 'divisas' ? '\$${(widget.totalAmount / (widget.dolarPrice ?? 1)).toStringAsFixed(2)}' : 'Bs.${widget.totalAmount}'} ha sido registrado',
-              'administrador',
-              null,
-            );
-
-            // Crear el objeto Payment a pasar a PaymentDetailScreen
-            Payment payment = Payment(
-              id: docRef.id,
-              referenceNumber: null,
-              phoneNumber: null,
-              paymentMethod: widget.paymentMethod,
-              selectedBank: null,
-              uid: FirebaseAuth.instance.currentUser !.uid,
-              timestamp: DateTime.now(),
-              paymentAmount: widget.totalAmount.toString(),
-              paymentStatus: 'pending',
-              paymentDate: null,
-              products: widget.products.map((product) {
-                return {
-                  'productId': product.id,
-                  'quantity': product.quantity,
-                  'price': product.price,
-                };
-              }).toList(), // Asegúrate de que esto sea un List<Map<String, dynamic>>
-              token: null,
-            );
-            print(payment.products);
-            // Navegar a PaymentDetailScreen
-            Navigator.pushAndRemoveUntil(
-              context,
-              MaterialPageRoute(builder: (context) => SuccessPaymentDetailScreen(
-                payment: payment,
-                dolarPrice: widget.dolarPrice,
-                )),
-              (Route<dynamic> route) => false, // Eliminar todas las rutas anteriores
-            );
-
-          } catch (e) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Error al registrar el pedido: $e')),
-            );
-          } finally {
+        } catch (e) {
+          if (!mounted) return; // Verifica si el widget está montado
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Error al registrar el pedido: $e')),
+          );
+        } finally {
+          if (mounted) {
             setState(() {
               isLoading = false; // Finalizar carga
             });
           }
-        },
-        style: ElevatedButton.styleFrom(
-          padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 40),
-          backgroundColor: Colors.grey[700], // Color de fondo según el esquema
-          textStyle: TextStyle(fontSize: 20, color: Colors.white), // Texto en blanco
-        ),
-        child: Text('Confirmar Pedido', style: TextStyle(color: Colors.white)), // Texto del botón
+        }
+      },
+      style: ElevatedButton.styleFrom(
+        padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 40),
+        backgroundColor: Colors.grey[700], // Color de fondo según el esquema
+        textStyle: TextStyle(fontSize: 20, color: Colors.white), // Texto en blanco
       ),
-    );
-  }
+      child: Text('Confirmar Pedido', style: TextStyle(color: Colors.white)), // Texto del botón
+    ),
+  );
+}
 
   Widget _buildInstructionMessage() {
     return Text(

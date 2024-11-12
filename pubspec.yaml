@@ -40,6 +40,7 @@ dependencies:
   flutter_dotenv: ^5.2.1
   mobile_scanner: ^6.0.2
   audioplayers: ^6.1.0
+  pretty_qr_code: ^3.3.0
 
 dev_dependencies:
   flutter_test:
@@ -55,3 +56,4 @@ flutter:
     - assets/media/sounds/payment_success_1.mp3
     - assets/media/sounds/payment_success_2.mp3
     - assets/media/sounds/payment_success_3.mp3
+    - assets/media/images/

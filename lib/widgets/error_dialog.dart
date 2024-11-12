@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class ErrorDialog {
-  static void show(BuildContext context, String title, String message) {
+  static void show(BuildContext context, String title, String message, Color? color) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -20,7 +20,7 @@ class ErrorDialog {
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 20,
-                    color: Colors.red[900], // Color rojo para errores
+                    color: color ?? Colors.red, // Color rojo para errores
                   ),
                   textAlign: TextAlign.center,
                 ),
@@ -43,7 +43,7 @@ class ErrorDialog {
                     },
                     style: ElevatedButton.styleFrom(
                       foregroundColor: Colors.white,
-                      backgroundColor: Colors.redAccent,
+                      backgroundColor: color ?? Colors.redAccent,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8.0),
                       ),

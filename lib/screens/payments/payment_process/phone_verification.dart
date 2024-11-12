@@ -128,7 +128,7 @@ class _PhoneVerificationScreenState extends State<PhoneVerificationScreen> {
                                 });
                                 Navigator.of(context).pop();
                               } else {
-                                ErrorDialog.show(context, 'Número inválido', 'Por favor, ingrese un número de teléfono válido.');
+                                ErrorDialog.show(context, 'Número inválido', 'Por favor, ingrese un número de teléfono válido.', null);
                               }
                             },
                             child: const Text('Aceptar'),
@@ -151,7 +151,7 @@ class _PhoneVerificationScreenState extends State<PhoneVerificationScreen> {
                       });
                       return Navigator.of(context).pop(phone);
                     } else {
-                      ErrorDialog.show(context, 'Número inválido', 'Por favor, ingrese un número de teléfono válido.');
+                      ErrorDialog.show(context, 'Número inválido', 'Por favor, ingrese un número de teléfono válido.', null);
                       return;
                     }
                   }
@@ -168,7 +168,7 @@ class _PhoneVerificationScreenState extends State<PhoneVerificationScreen> {
                       ),
                     );
                   } else {
-                    ErrorDialog.show(context, 'Número inválido', 'Por favor, ingrese un número de teléfono válido.');
+                    ErrorDialog.show(context, 'Número inválido', 'Por favor, ingrese un número de teléfono válido.', null);
                   }
                 },
                 style: ElevatedButton.styleFrom(

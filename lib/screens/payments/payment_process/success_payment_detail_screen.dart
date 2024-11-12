@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_application_1/models/product.dart';
 import '../../../models/order_model.dart';
+import '../../../widgets/error_dialog.dart';
 import '../../../widgets/show_qr.dart';
 import '../../my_home_page.dart';
 
@@ -12,8 +13,9 @@ class SuccessPaymentDetailScreen extends StatefulWidget {
 
   SuccessPaymentDetailScreen({
     required this.dolarPrice, 
-    required this.payment});
-  
+    required this.payment,
+  });
+
   @override
   _SuccessPaymentDetailScreenState createState() => _SuccessPaymentDetailScreenState();
 }
@@ -69,7 +71,6 @@ class _SuccessPaymentDetailScreenState extends State<SuccessPaymentDetailScreen>
 
   @override
   Widget build(BuildContext context) {
-    // ignore: deprecated_member_use
     return WillPopScope(
       onWillPop: () async {
         // Redirigir a MyHomePage al presionar el botón de retroceso
@@ -82,16 +83,35 @@ class _SuccessPaymentDetailScreenState extends State<SuccessPaymentDetailScreen>
       child: ScaffoldMessenger(
         key: _scaffoldMessengerKey,
         child: Scaffold(
-        appBar: AppBar(
-          title: const Text('Pedido registrado'),
-        ),
-        body: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: isLoading
-              ? Center(child: CircularProgressIndicator())
-              : ListView(
+          appBar: AppBar(
+            title: const Text('Pedido registrado'),
+          ),
+          body: StreamBuilder<DocumentSnapshot>(
+            stream: FirebaseFirestore.instance
+                .collection('payments')
+                .doc(widget.payment.id)
+                .snapshots(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return Center(child: CircularProgressIndicator());
+              }
+
+              if (snapshot.hasError) {
+                return Center(child: Text('Error al cargar el estado del pago.'));
+              }
+
+              if (!snapshot.hasData || !snapshot.data!.exists) {
+                return Center(child: Text('Pago no encontrado.'));
+              }
+
+              final paymentData = snapshot.data!.data() as Map<String, dynamic>;
+              final paymentStatus = paymentData['paymentStatus'] ?? widget.payment.paymentStatus;
+
+              return Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: ListView(
                   children: [
-                    _buildPaymentInfoCard(widget.payment),
+                    _buildPaymentInfoCard(paymentStatus),
                     const SizedBox(height: 16),
                     const Text(
                       'Productos:',
@@ -129,14 +149,31 @@ class _SuccessPaymentDetailScreenState extends State<SuccessPaymentDetailScreen>
                     ),
                   ],
                 ),
+              );
+            },
+          ),
         ),
       ),
-    )
     );
   }
 
-  Widget _buildPaymentInfoCard(Payment payment) {
-    DateTime paymentDateTime = payment.timestamp;
+  Widget _buildPaymentInfoCard(String paymentStatus) {
+    DateTime paymentDateTime = widget.payment.timestamp;
+    String paymentStatusName;
+    switch (paymentStatus) {
+      case 'pending':
+        paymentStatusName = 'Pendiente';
+        break;
+      case 'finished':
+        paymentStatusName = 'Finalizado';
+        break;
+      case 'checked':
+        paymentStatusName = 'Verificado';
+        break;  
+      default:
+        paymentStatusName = 'Desconocido';
+        break;  
+    }
 
     return Card(
       elevation: 4,
@@ -149,16 +186,17 @@ class _SuccessPaymentDetailScreenState extends State<SuccessPaymentDetailScreen>
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              ' Información del Pago',
+              ' Pedido N°${widget.payment.orderNumber}',
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 12),
-            Text( 'Monto: ${payment.paymentMethod == 'divisas' ? '\$${(double.parse(payment.paymentAmount) / (widget.dolarPrice ?? 1)).toStringAsFixed(2)}' : 'Bs. ${payment.paymentAmount}'}',
+            Text(
+              'Monto: ${widget.payment.paymentMethod == 'divisas' ? '\$${(double.parse(widget.payment.paymentAmount) / (widget.dolarPrice ?? 1)).toStringAsFixed(2)}' : 'Bs. ${widget.payment.paymentAmount}'}',
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black54),
             ),
             const SizedBox(height: 8),
             Text(
-              payment.paymentStatus == 'pendiente' ? 'Estado: ${payment.paymentStatus}' : 'Estado: Pendiente por pagar',
+              'Estado: $paymentStatusName',
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
@@ -167,12 +205,20 @@ class _SuccessPaymentDetailScreenState extends State<SuccessPaymentDetailScreen>
             Row(
               mainAxisAlignment: MainAxisAlignment.end, // Alinear los botones a la derecha
               children: [
-                if (token != null) // Mostrar el botón QR solo si el token no es nulo
+                if (token != null && paymentStatus != 'finished') // Mostrar el botón QR solo si el token no es nulo
                   IconButton(
                     tooltip: 'Mostrar QR',
                     icon: Icon(Icons.qr_code, size: 30),
                     onPressed: () {
-                      showQrConfirmationDialog(context, token!);
+                      showQrConfirmationDialog(context, token!,  widget.payment.orderNumber);
+                    },
+                  ),
+                if (paymentStatus == 'finished') // Mostrar el botón de cancelar solo si el pago ha sido completado
+                  IconButton(
+                    tooltip: 'Pedido finalizado',
+                    icon: Icon(Icons.check_circle_outline, size: 30, color: Colors.green),
+                    onPressed: () {
+                      ErrorDialog.show(context, 'Pedido finalizado', 'Este pedido ya ha sido canjeado', Colors.green); 
                     },
                   ),
               ],
@@ -218,7 +264,7 @@ class _SuccessPaymentDetailScreenState extends State<SuccessPaymentDetailScreen>
             if (product == null) {
               print("Producto no encontrado para ID: $productId");
               return ListTile(
-                title: Text('Producto no encontrado'),
+                                title: Text('Producto no encontrado'),
               );
             }
 
@@ -240,10 +286,9 @@ class _SuccessPaymentDetailScreenState extends State<SuccessPaymentDetailScreen>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text('Cantidad: $productQuantity'),
-                     Text( 'Precio unitario: ${widget.payment.paymentMethod == 'divisas' ? '\$${((product.price) / (widget.dolarPrice ?? 1)).toStringAsFixed(2)}' : 'Bs. ${product.price}'}',
-                      ),
-                      if (productQuantity > 1)
-                    Text('Subtotal: ${widget.payment.paymentMethod == 'divisas' ? '\$${(subtotal / (widget.dolarPrice ?? 1)).toStringAsFixed(2)}' : 'Bs. $subtotal'}'),
+                    Text('Precio unitario: ${widget.payment.paymentMethod == 'divisas' ? '\$${((product.price) / (widget.dolarPrice ?? 1)).toStringAsFixed(2)}' : 'Bs. ${product.price}'}'),
+                    if (productQuantity > 1)
+                      Text('Subtotal: ${widget.payment.paymentMethod == 'divisas' ? '\$${(subtotal / (widget.dolarPrice ?? 1)).toStringAsFixed(2)}' : 'Bs. $subtotal'}'),
                   ],
                 ),
               ),
@@ -253,7 +298,7 @@ class _SuccessPaymentDetailScreenState extends State<SuccessPaymentDetailScreen>
               title: Text('Error al procesar producto'),
             );
           }
-        }),
+        }).toList(),
         // Mostrar el total
         Card(
           margin: const EdgeInsets.symmetric(vertical: 8),

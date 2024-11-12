@@ -1,8 +1,11 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:flutter_application_1/screens/admin/admin_screen.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../models/order_model.dart';
+import '../screens/payments/payment_process/admin_payment_detail_screen.dart';
+import '../utils/qr_scanner_border_painter.dart';
+import '../widgets/error_dialog.dart'; // Asegúrate de importar el archivo de ErrorDialog
 
 class QRScanner extends StatefulWidget {
   @override
@@ -16,8 +19,7 @@ class _QRScannerState extends State<QRScanner> with WidgetsBindingObserver {
     r'^[{(]?([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})[)}]?$',
   );
 
-  Map<String, dynamic>? paymentData; // Para almacenar los datos del pago
-  String? documentId; // Para almacenar el ID del documento
+  bool isLoading = false; // Estado de carga
 
   @override
   void initState() {
@@ -27,7 +29,6 @@ class _QRScannerState extends State<QRScanner> with WidgetsBindingObserver {
     _subscription = controller.barcodes.listen((barcodeCapture) {
       for (var barcode in barcodeCapture.barcodes) {
         final String code = barcode.rawValue ?? '';
-        print("Código escaneado: $code"); // Agrega esto para depuración
         if (uuidRegExp.hasMatch(code)) {
           _fetchPaymentDetails(code); // Busca los detalles del pago
           break; // Salir del bucle después de encontrar un código válido
@@ -38,63 +39,37 @@ class _QRScannerState extends State<QRScanner> with WidgetsBindingObserver {
   }
 
   Future<void> _fetchPaymentDetails(String token) async {
+    setState(() {
+      isLoading = true; // Mostrar indicador de carga
+    });
+
     try {
-      // Realiza la consulta a Firestore
       QuerySnapshot paymentSnapshot = await FirebaseFirestore.instance
           .collection('payments')
           .where('token', isEqualTo: token)
           .limit(1)
           .get();
 
-      print("Documentos encontrados: ${paymentSnapshot.docs.length}");
-
-      // Verifica si hay documentos en el snapshot
       if (paymentSnapshot.docs.isNotEmpty) {
-        // Accede al primer documento
         DocumentSnapshot paymentDoc = paymentSnapshot.docs.first;
-        setState(() {
-          paymentData = paymentDoc.data() as Map<String, dynamic>;
-          documentId = paymentDoc.id; // Almacena el ID del documento
-        });
+        // Navegar a la nueva pantalla de detalles del pago para el administrador
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => AdminPaymentDetailScreen(
+              payment: Payment.fromFirestore(paymentDoc), // Crear Payment desde Firestore
+            ),
+          ),
+        );
       } else {
-        _showSnackBar('No se encontró ningún pago con ese token.');
+        ErrorDialog.show(context, 'No encontrado', 'No se encontró ningún pago con ese token.', Colors.red);
       }
     } catch (e) {
-      _showSnackBar('Error al buscar el pago: $e');
+      ErrorDialog.show(context, 'Error', 'Error al buscar el pago: $e', Colors.red);
+    } finally {
+      setState(() {
+        isLoading = false; // Ocultar indicador de carga
+      });
     }
-  }
-
-  void _finalizePayment() async {
-    if (paymentData != null && documentId != null) {
-      print("Datos del pago: $paymentData");
-      try {
-        await FirebaseFirestore.instance
-            .collection('payments')
-            .doc(documentId) // Usa el ID del documento almacenado
-            .update({'paymentStatus': 'finished'});
-
-        _showSnackBar('Pago finalizado exitosamente.');
-        setState(() {
-          paymentData = null; // Limpiar los datos del pago después de finalizar
-          documentId = null; // Limpiar el ID del documento
-        });
-
-        Navigator.pushAndRemoveUntil( // Navegar a la pantalla de confirmación de pago y borrar el historial
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => AdminScreen(),
-                  ),
-                  (Route<dynamic> route) => false, // Borrar el historial
-                );
-
-      } catch (e) {
-        _showSnackBar('Error al finalizar el pago: $e');
-      }
-    }
-  }
-
-  void _showSnackBar(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override
@@ -111,27 +86,46 @@ class _QRScannerState extends State<QRScanner> with WidgetsBindingObserver {
       appBar: AppBar(
         title: Text('Escanear Código QR'),
       ),
-      body: paymentData == null
-          ? MobileScanner(controller: controller)
-          : Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Detalles del Pago:', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-                  SizedBox(height: 10),
-                  Text('Referencia: ${paymentData!['referenceNumber']}'),
-                  Text('Monto: ${paymentData!['paymentAmount']} Bs.'),
-                  Text('Estado: ${paymentData!['paymentStatus']}'),
-                  Text('Banco: ${paymentData!['selectedBank']}'),
-                  SizedBox(height: 20),
-                  ElevatedButton(
-                    onPressed: _finalizePayment,
-                    child: Text('Finalizar Pedido'),
-                  ),
-                ],
+      body: Stack(
+        children: [
+          MobileScanner(controller: controller),
+          if (isLoading)
+            Center(child: CircularProgressIndicator()), // Indicador de carga
+          Center(
+            child: Container(
+              width: 300,
+              height: 300,
+              decoration: BoxDecoration(
+                color: Colors.transparent,
+                borderRadius: BorderRadius.circular(15),
+              ),
+              child: CustomPaint(
+                painter: QRScannerBorderPainter(),
               ),
             ),
+          ),
+          Positioned(
+            bottom: 50,
+            left: 12,
+            right: 12,
+            child: Column(
+              children: [
+                Text(
+                  'Apunta la cámara hacia el código QR',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: const Color.fromARGB(220, 255, 255, 255)),
+                  textAlign: TextAlign.center,
+                ),
+                SizedBox(height: 10),
+                Text(
+                  'Asegúrate de que el código esté bien iluminado y visible.',
+                  style: TextStyle(fontSize: 16, color: const Color.fromARGB(160, 255, 255, 255)),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

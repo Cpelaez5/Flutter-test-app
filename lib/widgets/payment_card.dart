@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart'; // Asegúrate de importar Firestore
 import 'package:timeago/timeago.dart' as timeago;
 import '../../models/order_model.dart';
+import 'error_dialog.dart';
 import 'show_qr.dart';
 
 class PaymentCard extends StatefulWidget {
@@ -50,7 +51,19 @@ class _PaymentCardState extends State<PaymentCard> {
 
   @override
   Widget build(BuildContext context) {
-    final timeAgo = timeago.format(widget.payment.timestamp, locale: 'es');
+     DateTime? lastActionDateTime;
+
+  // Determinar cuál fecha usar para mostrar el tiempo transcurrido
+  if (widget.payment.checkedAt != null && widget.payment.finishedAt == null) {
+    lastActionDateTime = widget.payment.checkedAt;
+  } else if (widget.payment.finishedAt != null) {
+    lastActionDateTime = widget.payment.finishedAt;
+  } else {
+    lastActionDateTime = widget.payment.timestamp; // Si no hay checkedAt ni finishedAt, usar timestamp
+  }
+
+  // Formatear el tiempo transcurrido
+  final timeAgo = lastActionDateTime != null ? timeago.format(lastActionDateTime, locale: 'es') : 'Desconocido';
     final paymentStatus = _getPaymentStatus(widget.payment.paymentStatus);
     final paymentDetails = _getPaymentDetails(widget.payment);
 
@@ -77,6 +90,14 @@ class _PaymentCardState extends State<PaymentCard> {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
+                    Text(
+                      'Pedido N°${widget.payment.orderNumber}',
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    
                     if (widget.payment.referenceNumber != null) // Mostrar solo si no es nulo
                       Text(
                         'Referencia: ${widget.payment.referenceNumber != null && widget.payment.referenceNumber!.length >= 4 ? widget.payment.referenceNumber?.substring(widget.payment.referenceNumber!.length - 4) : widget.payment.referenceNumber ?? 'N/A'}',
@@ -97,11 +118,11 @@ class _PaymentCardState extends State<PaymentCard> {
                             style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                         const SizedBox(width: 8),
                         if (widget.payment.paymentStatus == 'checked') 
-                          Icon(Icons.check, color: Colors.cyanAccent, size: 20),
+                          Icon(Icons.check, color: Colors.blueAccent, size: 20),
                         if (widget.payment.paymentStatus == 'pending') 
-                          Icon(Icons.hourglass_bottom, color: Colors.deepOrange, size: 20),
+                          Icon(Icons.access_time, color: Colors.deepOrange, size: 20),
                         if (widget.payment.paymentStatus == 'finished') 
-                          Icon(Icons.check_circle_outline, color: Colors.lightGreen, size: 20),
+                          Icon(Icons.check_circle_outline, size: 20, color: Colors.green),
                       ],
                     ),
                     Text(timeAgo, style: const TextStyle(fontSize: 14)),
@@ -109,14 +130,33 @@ class _PaymentCardState extends State<PaymentCard> {
                 ),
               ),
               if (widget.payment.token != null && userRole == 'cliente')
+                if (widget.payment.paymentStatus != 'finished')
                 IconButton(
-                  icon: Icon(Icons.qr_code),
+                  icon: Icon(Icons.qr_code, size: 30),
+                  tooltip: 'Ver QR',
                   onPressed: () {
                     // Aquí llamas a la función que mostrará el QR
-                    showQrConfirmationDialog(context, widget.payment.token!);
+                    showQrConfirmationDialog(context, widget.payment.token!, widget.payment.orderNumber);
                   },
                 ),
+              if (widget.payment.paymentStatus == 'finished')
+                IconButton(
+                  icon: Icon(Icons.check_circle_outline, size: 30, color: Colors.green),
+                  tooltip: 'Finalizado',
+                  onPressed: () {
+                    ErrorDialog.show(context, 'Finalizado', 'Este pago ya ha sido canjeado', Colors.green);
+                  },
+                ),
+                if (widget.payment.paymentStatus == 'checked')
+                IconButton(
+                  icon: Icon(Icons.done, size: 30, color: Colors.blueAccent),
+                  tooltip: 'Verificado',
+                  onPressed: () {
+                    ErrorDialog.show(context, 'Verificado', 'Este pago fue verificado y puede canjearse', Colors.blueAccent);
+                  },
+                )  
             ],
+            
           ),
         ),
       ),
@@ -140,7 +180,7 @@ class _PaymentCardState extends State<PaymentCard> {
 
       case 'checked':
         paymentStatusString = 'Verificado';
-        cardColor = Color.fromARGB(255, 0, 188, 212); // #00BCD4;
+        cardColor = const Color.fromARGB(255, 122, 240, 255); // #00BCD4;
         break;
         
       default:
