@@ -50,7 +50,7 @@ class QrCodeDisplayScreenState extends State<QrCodeDisplayScreen> {
   Future<void> playRandomSound() async {
     final player = AudioPlayer();
     final random = Random();
-    int soundIndex = random.nextInt(3) + 1;
+    int soundIndex = random.nextInt(4) + 1;
 
     try {
       await player.play(AssetSource('media/sounds/payment_success_$soundIndex.mp3'));

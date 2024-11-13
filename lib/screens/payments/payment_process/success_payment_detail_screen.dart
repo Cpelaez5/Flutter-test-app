@@ -298,7 +298,7 @@ class _SuccessPaymentDetailScreenState extends State<SuccessPaymentDetailScreen>
               title: Text('Error al procesar producto'),
             );
           }
-        }).toList(),
+        }),
         // Mostrar el total
         Card(
           margin: const EdgeInsets.symmetric(vertical: 8),

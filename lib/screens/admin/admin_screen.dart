@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../services/auth/auth_service.dart';
 import '../../widgets/qr_scanner.dart';
 import '../../widgets/square_button.dart';
+import 'users/user_management_screen.dart';
 
 class AdminScreen extends StatefulWidget {
   @override
@@ -54,7 +55,12 @@ class _AdminScreenState extends State<AdminScreen> {
               Navigator.pushNamed(context, '/orders'); // Navegar a la pantalla de pedidos
             }),
             buildSquareButton('Usuarios', Icons.people, () {
-              // Navegar a la pantalla de gestión de usuarios
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => UserManagementScreen(),
+                ),
+              );
             }),
           ],
         ),

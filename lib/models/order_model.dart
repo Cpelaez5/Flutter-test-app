@@ -15,6 +15,7 @@ class Payment {
   final String? token; // Hacerlo opcional
   final DateTime? checkedAt; // Campo opcional
   final DateTime? finishedAt; // Campo opcional
+  final String? imageUrl;
   final List<dynamic> products;
 
   Payment({
@@ -33,6 +34,7 @@ class Payment {
     this.token,
     this.checkedAt,
     this.finishedAt,
+    this.imageUrl,
   });
 
   factory Payment.fromFirestore(DocumentSnapshot doc) {
@@ -73,6 +75,7 @@ class Payment {
       token: data['token'] as String?,
       checkedAt: checkedAtDate, // Asignar el valor de checkedAt
       finishedAt: finishedAtDate, // Asignar el valor de finishedAt
+      imageUrl: data['imageUrl'] as String?,
     );
   }
 

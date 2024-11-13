@@ -1,3 +1,6 @@
+import 'dart:math';
+
+import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/models/product.dart';
 import '../../../models/order_model.dart';
@@ -31,6 +34,17 @@ class _AdminPaymentDetailScreenState extends State<AdminPaymentDetailScreen> {
     });
   }
 
+  Future<void> playRandomSound() async {
+    final player = AudioPlayer();
+    final random = Random();
+    int soundIndex = random.nextInt(4) + 1;
+
+    try {
+      await player.play(AssetSource('media/sounds/payment_success_$soundIndex.mp3'));
+    } catch (e) {
+      print('Error al reproducir el sonido: $e');
+    }
+  }
   Future<void> _finalizePayment() async {
     setState(() {
       isLoading = true; // Mostrar indicador de carga
@@ -38,6 +52,7 @@ class _AdminPaymentDetailScreenState extends State<AdminPaymentDetailScreen> {
 
     try {
       await PaymentService().updatePaymentStatus(widget.payment.id, 'finished');
+      await playRandomSound(); 
 
       // Mostrar un mensaje de éxito
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Pago marcado como finalizado.')));
