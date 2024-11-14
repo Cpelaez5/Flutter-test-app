@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../screens/my_home_page.dart';
+import '../../screens/my_home_page.dart';
 
 class CustomDialog {
   static void show(BuildContext context, String title, String message, ) {

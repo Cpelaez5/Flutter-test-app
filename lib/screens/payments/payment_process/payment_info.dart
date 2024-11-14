@@ -3,7 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart'; // Importar la biblioteca intl
-import '../../../widgets/custom_dialog.dart';
+import '../../../widgets/dialog/custom_dialog.dart';
 import 'phone_verification.dart';
 
 class PaymentInfoScreen extends StatefulWidget {

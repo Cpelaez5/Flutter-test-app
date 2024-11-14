@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../utils/phone_validation.dart';
-import '../../../widgets/custom_dialog.dart';
-import '../../../widgets/error_dialog.dart';
+import '../../../widgets/dialog/custom_dialog.dart';
+import '../../../widgets/dialog/error_dialog.dart';
 import 'reference_number.dart';// Importar la función de validación
 
 class PhoneVerificationScreen extends StatefulWidget {

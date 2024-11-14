@@ -1,7 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart'; // Asegúrate de tener esta dependencia en tu pubspec.yaml
-import '../../../widgets/custom_dialog.dart';
+import '../../../widgets/dialog/custom_dialog.dart';
 import 'bank_selection.dart';
 import 'confirm_amount.dart';
 import 'payment_confirmation.dart';

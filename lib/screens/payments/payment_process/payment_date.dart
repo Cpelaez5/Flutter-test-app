@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../data/payment_data.dart';
-import '../../../widgets/custom_dialog.dart';
+import '../../../widgets/dialog/custom_dialog.dart';
 import 'confirm_amount.dart'; // Asegúrate de que la ruta sea correcta
 
 class PaymentDateScreen extends StatefulWidget {

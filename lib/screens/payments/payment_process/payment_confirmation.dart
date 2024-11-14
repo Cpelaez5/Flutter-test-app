@@ -3,7 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../../services/notification_service.dart';
-import '../../../services/upload_image.dart';
+import '../../../services/payments/upload_image.dart';
 import '../../my_home_page.dart';
 import 'image_preview.dart'; // Asegúrate de importar la nueva pantalla
 

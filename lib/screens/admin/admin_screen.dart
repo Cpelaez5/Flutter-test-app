@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../services/auth/auth_service.dart';
-import '../../widgets/qr_scanner.dart';
-import '../../widgets/square_button.dart';
+import '../../widgets/payments/qr_scanner.dart';
+import '../../widgets/users/square_button.dart';
+import 'products/product_option_screen.dart';
 import 'users/user_management_screen.dart';
 
 class AdminScreen extends StatefulWidget {
@@ -32,7 +33,8 @@ class _AdminScreenState extends State<AdminScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return 
+    Scaffold(
       appBar: AppBar(
         title: Text('Panel de Administrador'),
       ),
@@ -59,6 +61,14 @@ class _AdminScreenState extends State<AdminScreen> {
                 context,
                 MaterialPageRoute(
                   builder: (context) => UserManagementScreen(),
+                ),
+              );
+            }),
+            buildSquareButton('Cargar Productos', Icons.add, () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => ProductOptionsScreen(),
                 ),
               );
             }),

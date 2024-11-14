@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_application_1/models/product.dart';
 import '../../../models/order_model.dart';
-import '../../../widgets/error_dialog.dart';
-import '../../../widgets/show_qr.dart';
+import '../../../widgets/dialog/error_dialog.dart';
+import '../../../widgets/payments/show_qr.dart';
 import '../../my_home_page.dart';
 
 class SuccessPaymentDetailScreen extends StatefulWidget {

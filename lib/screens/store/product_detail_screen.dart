@@ -6,6 +6,7 @@ import '../../services/my_app_state.dart';
 import 'package:flutter_animate/flutter_animate.dart'; // Asegúrate de que esta importación esté presente
 import 'package:cached_network_image/cached_network_image.dart'; // Importar el paquete
 
+
 class ProductDetailScreen extends StatefulWidget {
   final Product product;
   final Cart cart;
@@ -18,9 +19,10 @@ class ProductDetailScreen extends StatefulWidget {
 
 class _ProductDetailScreenState extends State<ProductDetailScreen> {
   int quantity = 1;
-
+  
   @override
   Widget build(BuildContext context) {
+    
     var appState = context.watch<MyAppState>();
     final isFavorite = appState.isFavorite(widget.product); // Guardar en variable local
 

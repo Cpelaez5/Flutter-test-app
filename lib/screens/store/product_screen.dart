@@ -1,18 +1,18 @@
+// product_screen.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../models/cart.dart';
 import '../../models/product.dart';
 import '../../services/my_app_state.dart';
-import '../../services/product_service.dart';
-import 'product_detail_screen.dart';
+import '../../services/products/product_service.dart';
+import '../../widgets/store/product_card.dart';
 import 'search_page.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:cached_network_image/cached_network_image.dart'; // Asegúrate de agregar este paquete en pubspec.yaml
 
 class ProductScreen extends StatefulWidget {
   final Cart cart;
 
-  const ProductScreen({required this.cart, super.key});
+  const ProductScreen({required this.cart, Key? key}) : super(key: key);
 
   @override
   _ProductScreenState createState() => _ProductScreenState();
@@ -20,30 +20,35 @@ class ProductScreen extends StatefulWidget {
 
 class _ProductScreenState extends State<ProductScreen> {
   late Future<List<Product>> _productsFuture;
+  late Future<String> _userRoleFuture; // Para obtener el rol del usuario
 
   @override
   void initState() {
     super.initState();
     _productsFuture = _loadProducts();
+    _userRoleFuture = ProductService().getUserRole(); // Obtener el rol del usuario
   }
 
   Future<List<Product>> _loadProducts() async {
-    try {
-      return await ProductService().fetchProducts();
-    } catch (e) {
-      // Manejo de errores
-      print('Error al cargar productos: $e');
-      return []; // Retorna una lista vacía en caso de error
-    }
+    return await ProductService().fetchProducts();
   }
 
   @override
+  
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
         title: const Text('Productos'),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh), // Icono de actualización
+            onPressed: () {
+              setState(() {
+                _productsFuture = _loadProducts(); // Recargar productos
+              });
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.search),
             onPressed: () {
@@ -70,97 +75,42 @@ class _ProductScreenState extends State<ProductScreen> {
 
           final products = snapshot.data!;
 
-          return Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: GridView.builder(
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                childAspectRatio: 1 / 1.5,
-                crossAxisSpacing: 12.0,
-                mainAxisSpacing: 12.0,
-              ),
-              itemCount: products.length,
-              itemBuilder: (context, index) {
-                final product = products[index];
-                return ChangeNotifierProvider.value(
-                  value: context.read<MyAppState>(),
-                  child: ProductCard(product: product, cart: widget.cart),
-                ).animate().fadeIn(duration: 300.ms, curve: Curves.easeInOut).slide(duration: 300.ms, curve: Curves.easeInOut);
-              },
-            ),
+          return FutureBuilder<String>(
+            future: _userRoleFuture,
+            builder: (context, roleSnapshot) {
+              if (roleSnapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              } else if (roleSnapshot.hasError) {
+                return const Center(child: Text('Error al obtener el rol del usuario'));
+              } else if (!roleSnapshot.hasData) {
+                return const Center(child: Text('No se pudo obtener el rol'));
+              }
+
+              final userRole = roleSnapshot.data!; // Obtener el rol del usuario
+
+              return Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: GridView.builder(
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    childAspectRatio: 1 / 1.5,
+                    crossAxisSpacing: 12.0,
+                    mainAxisSpacing: 12.0,
+                  ),
+                  itemCount: products.length,
+                  itemBuilder: (context, index) {
+                    final product = products[index];
+                    return ChangeNotifierProvider.value(
+                      value: context.read<MyAppState>(),
+                      child: ProductCard(product: product, cart: widget.cart, userRole: userRole), // Pasar el rol del usuario
+                    ).animate().fadeIn(duration: 300.ms, curve: Curves.easeInOut).slide(duration: 300.ms, curve: Curves.easeInOut);
+                  },
+                ),
+              );
+            },
           );
         },
       ),
-    );
-  }
-}
-
-class ProductCard extends StatelessWidget {
-  final Product product;
-  final Cart cart;
-
-  const ProductCard({required this.product, required this.cart, super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Consumer<MyAppState>(
-      builder: (context, appState, child) {
-        final isFavorite = appState.isFavorite(product);
-
-        return GestureDetector(
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => ProductDetailScreen(product: product, cart: cart),
-              ),
-            );
-          },
-          child: Card(
-            child: Column(
-              children: [
-                Expanded(
-                  child: CachedNetworkImage(
-                    imageUrl: product.imageUrl,
-                    fit: BoxFit.cover,
-                    width: double.infinity,
-                    height: double.infinity,
-                    errorWidget: (context, url, error) => const Center(child: Icon(Icons.error)), // Manejar error de carga
-                    placeholder: (context, url) => const Center(child: CircularProgressIndicator()), // Indicador de carga
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        product.name,
-                        style: const TextStyle(fontWeight: FontWeight.bold),
-                        maxLines: 1,
-                        overflow: TextOverflow .ellipsis,
-                      ),
-                      Text(
-                        'Bs. ${product.price.toStringAsFixed(2)}',
-                        style: const TextStyle(color: Colors.green),
-                      ),
-                    ],
-                  ),
-                ),
-                IconButton(
-                  icon: Icon(
-                    isFavorite ? Icons.favorite : Icons.favorite_border,
-                    color: isFavorite ? Colors.red : Colors.grey,
-                  ),
-                  onPressed: () {
-                    appState.toggleFavorite(product);
-                  },
-                ),
-              ],
-            ),
-          ),
-        );
-      },
     );
   }
 }

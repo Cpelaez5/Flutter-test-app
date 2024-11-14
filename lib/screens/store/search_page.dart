@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart'; // Importar el paquete
 import '../../models/cart.dart';
 import '../../models/product.dart';
-import '../../services/product_service.dart';
+import '../../services/products/product_service.dart';
 import 'product_detail_screen.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'dart:async'; // Para el debounce

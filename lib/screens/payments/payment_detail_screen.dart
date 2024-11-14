@@ -7,10 +7,10 @@ import '../../services/notification_service.dart';
 import '../../services/users/get_user_role.dart';
 import '../../services/payments/update_payment_status.dart';
 import 'package:collection/collection.dart'; // Importar la biblioteca collection
-import '../../widgets/error_dialog.dart';
-import '../../widgets/qr_scanner.dart';
-import '../../widgets/image_viewer.dart';
-import '../../widgets/show_qr.dart'; // Asegúrate de que esta ruta sea correcta
+import '../../widgets/dialog/error_dialog.dart';
+import '../../widgets/payments/qr_scanner.dart';
+import '../../widgets/payments/image_viewer.dart';
+import '../../widgets/payments/show_qr.dart'; // Asegúrate de que esta ruta sea correcta
 
 class PaymentDetailScreen extends StatefulWidget {
   final Payment payment;

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../screens/payments/qr_code_display_screen.dart';
+import '../../screens/payments/qr_code_display_screen.dart';
 
 void showQrConfirmationDialog(BuildContext context, String token, int orderNumber) {
   showDialog(

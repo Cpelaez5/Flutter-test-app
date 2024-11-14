@@ -5,8 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_application_1/models/product.dart';
 import '../../../models/order_model.dart';
 import '../../../services/payments/payment_service.dart';
-import '../../../widgets/payment_info_card.dart';
-import '../../../widgets/product_list.dart';
+import '../../../widgets/info/payment_info_card.dart';
+import '../../../widgets/payments/product_list.dart';
 
 class AdminPaymentDetailScreen extends StatefulWidget {
   final Payment payment;

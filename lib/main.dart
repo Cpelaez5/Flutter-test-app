@@ -25,6 +25,7 @@ Future<void> main() async {
 
   // Cargar el archivo .env
   await dotenv.load(fileName: ".dotenv");
+  await dotenv.load(fileName: ".env");
 
   timeago.setLocaleMessages('es', timeago.EsMessages());
   Intl.defaultLocale = 'es_ES';

@@ -2,9 +2,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart'; // Asegúrate de importar Firestore
 import 'package:timeago/timeago.dart' as timeago;
-import '../../models/order_model.dart';
-import 'error_dialog.dart';
-import 'show_qr.dart';
+import '../../../models/order_model.dart';
+import '../dialog/error_dialog.dart';
+import '../payments/show_qr.dart';
 
 class PaymentCard extends StatefulWidget {
   final Payment payment;

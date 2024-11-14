@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:cloud_firestore/cloud_firestore.dart'; // Asegúrate de tener esta dependencia
-import '../../../widgets/custom_dialog.dart';
-import '../../../widgets/error_dialog.dart';
+import '../../../widgets/dialog/custom_dialog.dart';
+import '../../../widgets/dialog/error_dialog.dart';
 import 'bank_selection.dart'; // Para acceder al portapapeles
 
 class ReferenceNumberScreen extends StatefulWidget {

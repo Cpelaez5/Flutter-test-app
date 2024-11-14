@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../utils/currency_input_formatter.dart';
-import '../../../widgets/custom_dialog.dart';
+import '../../../widgets/dialog/custom_dialog.dart';
 import 'payment_verification.dart'; // Asegúrate de que la ruta sea correcta
 
 class ConfirmAmountScreen extends StatefulWidget {

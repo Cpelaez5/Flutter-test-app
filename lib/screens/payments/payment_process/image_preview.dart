@@ -1,7 +1,7 @@
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import '../../../services/upload_image.dart';
+import '../../../services/payments/upload_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../my_home_page.dart';
 

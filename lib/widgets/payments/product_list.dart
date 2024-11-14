@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:collection/collection.dart';
-import '../../models/product.dart';
+import '../../../models/product.dart';
 
 class ProductList extends StatelessWidget {
   final List<dynamic> productDataList;

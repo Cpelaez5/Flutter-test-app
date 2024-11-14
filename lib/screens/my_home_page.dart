@@ -45,13 +45,13 @@ class _MyHomePageState extends State<MyHomePage> {
       case 0:
         return ProductScreen(cart: cart);
       case 1:
-        return FavoritesPage();
+        return userRole != 'administrador' ? FavoritesPage() : ProductSearchPage(cart: cart);
       case 2:
-        return ProductSearchPage(cart: cart);
+        return userRole != 'administrador' ? ProductSearchPage(cart: cart) : UserScreen();
       case 3:
-        return UserScreen();
+        return userRole != 'administrador' ? UserScreen() : AdminScreen();
       case 4:
-        return userRole == 'cliente' ? CartScreen(cart: cart) : AdminScreen();
+        return CartScreen(cart: cart);
       default:
         throw UnimplementedError('No widget for $selectedIndex');
     }
@@ -79,6 +79,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   icon: Icon(Icons.storefront_rounded),
                   label: 'Productos',
                 ),
+                if (userRole == 'cliente') // solo mostrar favoritos a los clientes
                 BottomNavigationBarItem(
                   icon: Icon(Icons.favorite),
                   label: 'Favoritos',

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../widgets/auth_wrapper.dart';
+import '../widgets/users/auth_wrapper.dart';
 
 class SplashScreen extends StatelessWidget {
   @override

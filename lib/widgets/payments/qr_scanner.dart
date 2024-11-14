@@ -2,10 +2,10 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../models/order_model.dart';
-import '../screens/payments/payment_process/admin_payment_detail_screen.dart';
-import '../utils/qr_scanner_border_painter.dart';
-import '../widgets/error_dialog.dart';
+import '../../models/order_model.dart';
+import '../../screens/payments/payment_process/admin_payment_detail_screen.dart';
+import '../../utils/qr_scanner_border_painter.dart';
+import '../dialog/error_dialog.dart';
 
 class QRScanner extends StatefulWidget {
   @override

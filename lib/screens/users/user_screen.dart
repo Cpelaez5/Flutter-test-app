@@ -1,6 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_application_1/widgets/square_button.dart';
+import 'package:flutter_application_1/widgets/users/square_button.dart';
 import 'package:provider/provider.dart';
 import '../../services/auth/auth_service.dart';
 import 'user_order_screen.dart';

@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import '../../models/order_model.dart';
-import 'error_dialog.dart';
+import '../../../models/order_model.dart';
+import '../dialog/error_dialog.dart';
 
 class PaymentInfoCard extends StatefulWidget {
   final Payment payment;

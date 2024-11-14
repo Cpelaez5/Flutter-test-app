@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../data/payment_data.dart';
-import '../../../widgets/custom_dialog.dart';
+import '../../../widgets/dialog/custom_dialog.dart';
 import 'payment_date.dart'; // Asegúrate de que esta ruta sea correcta
 
 class BankSelectionScreen extends StatefulWidget {
