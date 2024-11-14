@@ -2,19 +2,24 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../models/order_model.dart';
 import '../../widgets/info/payment_card.dart';
-import '../payments/payment_screen.dart';
 import '../payments/payment_detail_screen.dart'; // Importa el nuevo widget
 
 class UserOrdersScreen extends StatelessWidget {
   final String userId;
+  final bool? fromAdmin;
 
-  UserOrdersScreen({required this.userId});
+  UserOrdersScreen({
+    required this.userId,
+    this.fromAdmin,
+    });
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Mis Pedidos'),
+        title: Text(
+          fromAdmin == true ? 'Pedidos del Usuario' : 'Mis Pedidos'
+          ),
       ),
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance
@@ -31,7 +36,9 @@ class UserOrdersScreen extends StatelessWidget {
           }
 
           if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-            return const Center(child: Text('No has hecho pedidos todavía.'));
+            return Center(child: Text(
+              fromAdmin == true ? 'Este usuario no ha hecho pedidos' : 'No has hecho pedidos todavía.'
+              ));
           }
 
           final orders = _getOrdersFromSnapshot(snapshot);
@@ -39,28 +46,28 @@ class UserOrdersScreen extends StatelessWidget {
           return _buildOrdersList(orders, context);
         },
       ),
-      floatingActionButton: ElevatedButton(
-          onPressed: () {
-            Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => PaymentScreen(
-                totalAmount: 0.0,
-                products: [], // Pasar la lista de productos
-              ),
-            ),
-          );
-            print('Botón presionado');
-          },
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(Icons.add), // Ícono
-              const SizedBox(width: 8), // Espacio entre el ícono y el texto
-              const Text('Registrar Pago'), // Texto
-            ],
-          ),
-        ),
+      // floatingActionButton: ElevatedButton(
+      //     onPressed: () {
+      //       Navigator.push(
+      //       context,
+      //       MaterialPageRoute(
+      //         builder: (context) => PaymentScreen(
+      //           totalAmount: 0.0,
+      //           products: [], // Pasar la lista de productos
+      //         ),
+      //       ),
+      //     );
+      //       print('Botón presionado');
+      //     },
+      //     child: Row(
+      //       mainAxisSize: MainAxisSize.min,
+      //       children: [
+      //         const Icon(Icons.add), // Ícono
+      //         const SizedBox(width: 8), // Espacio entre el ícono y el texto
+      //         const Text('Registrar Pago'), // Texto
+      //       ],
+      //     ),
+      //   ),
       );
   }
 

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../services/auth/auth_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart'; // Asegúrate de importar Firestore
 import 'reset_password_screen.dart'; // Asegúrate de importar la pantalla de restablecimiento
 import 'register_screen.dart'; // Asegúrate de importar la pantalla de registro
 
@@ -22,7 +23,7 @@ class _AuthScreenState extends State<AuthScreen> {
   bool _emailError = false;
   bool _passwordError = false;
 
-  Future<void> _submit() async {
+ Future<void> _submit() async {
     final email = _emailController.text.trim();
     final password = _passwordController.text.trim();
 
@@ -49,8 +50,32 @@ class _AuthScreenState extends State<AuthScreen> {
           _showSnackBar('Por favor, verifica tu correo electrónico antes de iniciar sesión.');
           return;
         }
-        // Si el correo está verificado, navega a la pantalla principal
-        Navigator.of(context).pushReplacementNamed('/home'); // Cambia '/home' por la ruta de tu pantalla principal
+
+        // Verificar el estado del usuario en Firestore
+        DocumentSnapshot userDoc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
+        
+        if (userDoc.exists && userDoc.data() != null) {
+          var userData = userDoc.data() as Map<String, dynamic>;
+          print("User  data: $userData"); // Imprimir los datos del usuario para depuración
+          
+          // Manejo del campo 'status'
+          String userStatus = userData['status']?.toString().trim() ?? ''; // Asegúrate de que no sea nulo y quita espacios
+          print("User  status: $userStatus"); // Imprimir el estado del usuario para depuración
+
+          // Verificar si el estado es "blocked"
+          if (userStatus.toLowerCase() == 'blocked' || userStatus.toLowerCase() != 'active') { // Comparar en minúsculas para evitar problemas de capitalización
+            _showSnackBar('Tu cuenta está bloqueada. Contacta al soporte.');
+            return; // Asegúrate de que el flujo se detenga aquí
+          }
+        } else {
+          _showSnackBar('No se encontró información del usuario.');
+          return;
+        }
+
+        // Si el correo está verificado y el estado no es "blocked", navega a la pantalla principal
+        if (mounted) { // Verifica si el widget aún está montado
+          Navigator.of(context).pushReplacementNamed('/home'); // Cambia '/home' por la ruta de tu pantalla principal
+        }
       }
     } catch (error) {
       print('Error: $error');
@@ -72,7 +97,9 @@ class _AuthScreenState extends State<AuthScreen> {
         }
       }
 
-      _showSnackBar(message);
+      if (mounted) { // Verifica si el widget aún está montado
+        _showSnackBar(message);
+      }
     } finally {
       if (mounted) { // Verifica si el widget aún está montado
         setState(() {
@@ -80,7 +107,7 @@ class _AuthScreenState extends State<AuthScreen> {
         });
       }
     }
-  }
+}
 
   void _showSnackBar(String message) {
     if (mounted) { // Verifica si el widget aún está montado
@@ -115,7 +142,7 @@ class _AuthScreenState extends State<AuthScreen> {
       },
       child: Scaffold(
         body: Container(
-          decoration: BoxDecoration(
+                    decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [Colors.brown[300]!, Colors.brown[100]!],
               begin: Alignment.topLeft,

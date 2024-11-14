@@ -28,7 +28,10 @@ class AuthService with ChangeNotifier {
         'name': name,
         'email': email,
         'role': 'cliente', // Asignar un rol por defecto
+        'status': 'active',
+        'imageUrl': null,
         'tokens': [] // Inicializar un arreglo para los tokens
+
       });
 
       return result.user;

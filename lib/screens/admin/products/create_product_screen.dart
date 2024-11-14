@@ -327,23 +327,6 @@ class _CreateProductScreenState extends State<CreateProductScreen> {
                   ),
                 ),
               ),
-              const SizedBox(height: 16),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    minimumSize: Size(double.infinity, 48),
-                    backgroundColor: Colors.blue,
-                  ),
-                  onPressed: () {
-                    // Aquí puedes implementar la función para importar productos
-                  },
-                  child: const Text(
-                    'Importar',
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
-                  ),
-                ),
-              ),
             ],
           ),
         ),

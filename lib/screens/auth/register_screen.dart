@@ -45,6 +45,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
       return;
     }
 
+    if (await _isIdCardRegistered(idCard)) {
+      _showErrorMessage('Este número de cédula ya está registrado.');
+      return;
+    }
+
     setState(() {
       _isLoading = true;
     });
@@ -81,6 +86,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
     }
   }
 
+  
+
   Future<void> _saveUserToFirestore(String uid, String idCard, String name, String email, String phone) async {
     await FirebaseFirestore.instance.collection('users').doc(uid).set({
       'idCard': idCard,
@@ -89,6 +96,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
       'phone': phone,
       'role': 'cliente', // cliente por defecto
     });
+  }
+
+  Future<bool> _isIdCardRegistered(String idCard) async {
+    QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+        .collection('users')
+        .where('idCard', isEqualTo: idCard)
+        .get();
+
+    return querySnapshot.docs.isNotEmpty; // Retorna true si hay documentos que coinciden
   }
 
   Future<void> _showErrorMessage(String message) {
